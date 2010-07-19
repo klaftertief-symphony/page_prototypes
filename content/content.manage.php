@@ -1,18 +1,16 @@
 <?php
 	
 	require_once(CONTENT . '/content.blueprintspages.php');
-	require_once(TOOLKIT . '/class.entrymanager.php');
-	require_once(TOOLKIT . '/class.sectionmanager.php');
 	
-	class contentExtensionStatic_content_managerTemplates extends contentBlueprintsPages {
+	class contentExtensionPage_templatesManage extends contentBlueprintsPages {
 		protected $_driver = null;
 		protected $_uri = null;
 		
 		public function __construct(&$parent){
 			parent::__construct($parent);
 			
-			$this->_uri = URL . '/symphony/extension/static_content_manager';
-			$this->_driver = $this->_Parent->ExtensionManager->create('static_content_manager');
+			$this->_uri = URL . '/symphony/extension/page_templates';
+			$this->_driver = $this->_Parent->ExtensionManager->create('page_templates');
 		}
 		
 		public function __viewIndex() {
@@ -57,7 +55,7 @@
 				foreach ($pages as $page) {
 					$class = array();
 					$page_title = $this->resolvePageTemplateTitle($page['id']);
-					$page_edit_url = $this->_uri . '/templates/edit/' . $page['id'] . '/';
+					$page_edit_url = $this->_uri . '/manage/edit/' . $page['id'] . '/';
 					
 					$col_title = Widget::TableData(Widget::Anchor(
 						$page_title, $page_edit_url, $page['handle']
@@ -109,7 +107,7 @@
 			
 			// Verify template exists:
 			if($this->_context[0] == 'edit') {
-				if(!$template_id = $this->_context[1]) redirect($this->_uri . '/templates/');
+				if(!$template_id = $this->_context[1]) redirect($this->_uri . '/manage/');
 				
 				$existing = Symphony::Database()->fetchRow(0, "
 					SELECT
@@ -145,8 +143,8 @@
 								'Page template updated at %1$s. <a href="%2$s">Create another?</a> <a href="%3$s">View all Pages</a>', 
 								array(
 									DateTimeObj::getTimeAgo(__SYM_TIME_FORMAT__), 
-									$this->_uri . '/templates/new/' . $link_suffix,
-									$this->_uri . '/templates/' . $link_suffix,
+									$this->_uri . '/manage/new/' . $link_suffix,
+									$this->_uri . '/manage/' . $link_suffix,
 								)
 							), 
 							Alert::SUCCESS);
@@ -160,8 +158,8 @@
 								'Page template created at %1$s. <a href="%2$s">Create another?</a> <a href="%3$s">View all Page templates</a>', 
 								array(
 									DateTimeObj::getTimeAgo(__SYM_TIME_FORMAT__), 
-									$this->_uri . '/templates/new/' . $link_suffix,
-									$this->_uri . '/templates/' . $link_suffix,
+									$this->_uri . '/manage/new/' . $link_suffix,
+									$this->_uri . '/manage/' . $link_suffix,
 								)
 							), 
 							Alert::SUCCESS);
@@ -314,11 +312,11 @@
 		
 		public function __actionEdit() {
 			if($this->_context[0] != 'new' && !$template_id = (integer)$this->_context[1]) {
-				redirect($this->_uri . '/templates/');
+				redirect($this->_uri . '/manage/');
 			}
 				
 			if(@array_key_exists('delete', $_POST['action'])) {
-				$this->__actionDelete($template_id, $this->_uri . '/templates/');
+				$this->__actionDelete($template_id, $this->_uri . '/manage/');
 			}
 			
 			if(@array_key_exists('save', $_POST['action'])) {
@@ -449,7 +447,7 @@
 							
 						} else {
 							$template_id = Symphony::Database()->getInsertID();
-							$redirect = $this->_uri . "/templates/edit/{$template_id}/created/";
+							$redirect = $this->_uri . "/manage/edit/{$template_id}/created/";
 						}
 						
 					// Update existing:
@@ -467,7 +465,7 @@
 							
 						} else {
 							Symphony::Database()->delete('tbl_pages_types', " `page_id` = '$template_id'");
-							$redirect = $this->_uri . "/templates/edit/{$template_id}/saved/";
+							$redirect = $this->_uri . "/manage/edit/{$template_id}/saved/";
 						}
 					}
 					
@@ -495,8 +493,8 @@
 		}
 		
 		protected function __updatePageTemplateFiles($new_path, $new_handle, $old_path = null, $old_handle = null) {
-			$new = PAGES . '/templates' . '/' . $this->__createHandle($new_path, $new_handle) . '.xsl';
-			$old = PAGES . '/templates' . '/' . $this->__createHandle($old_path, $old_handle) . '.xsl';
+			$new = PAGES . '/manage' . '/' . $this->__createHandle($new_path, $new_handle) . '.xsl';
+			$old = PAGES . '/manage' . '/' . $this->__createHandle($old_path, $old_handle) . '.xsl';
 			$data = null;
 			
 			// Nothing to do:
@@ -515,7 +513,7 @@
 		}
 		
 		protected function __deletePageTemplateFiles($path, $handle) {
-			$file = PAGES . '/templates' . '/' . trim(str_replace('/', '_', $path . '_' . $handle), '_') . '.xsl';
+			$file = PAGES . '/manage' . '/' . trim(str_replace('/', '_', $path . '_' . $handle), '_') . '.xsl';
 			
 			// Nothing to do:
 			if(!file_exists($file)) return true;

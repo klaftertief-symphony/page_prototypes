@@ -1,11 +1,6 @@
 <?php
 /*---------------------------------------------------------------------------*/
 
-require_once(TOOLKIT . '/class.entrymanager.php');
-require_once(TOOLKIT . '/class.sectionmanager.php');
-	
-/*---------------------------------------------------------------------------*/
-
 	class extension_page_templates extends Extension {
 	/*-------------------------------------------------------------------------
 		Definition:
@@ -27,11 +22,13 @@ require_once(TOOLKIT . '/class.sectionmanager.php');
 		
 		
 		public function fetchNavigation() {
+			return array(
 				array(
 					'location' => __('Blueprints'),
 					'name' => __('Page Templates'),
-					'link' => '/templates/'
-				);
+					'link' => '/manage/'
+				)
+			);
 		}
 
 		public function uninstall(){
