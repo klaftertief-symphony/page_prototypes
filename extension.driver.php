@@ -33,10 +33,12 @@
 
 		public function uninstall(){
 			$this->_Parent->Database->query("DROP TABLE `tbl_page_templates`");
+			$this->_Parent->Database->query("DROP TABLE `tbl_page_templates_types`");
 		}
 		
 		public function install(){
-			@mkdir(PAGES . '/templates', Symphony::Configuration()->get('write_mode', 'file'));
+			@mkdir(PAGES . '/templates', Symphony::Configuration()->get('write_mode', 'directory'));
+
 			return $this->_Parent->Database->query(
 				"CREATE TABLE `tbl_page_templates` (
 					`id` int(11) unsigned NOT NULL auto_increment,
@@ -52,6 +54,17 @@
 					KEY `parent` (`parent`)
 				) TYPE=MyISAM;"
 			);
+
+			return $this->_Parent->Database->query(
+				"CREATE TABLE `tbl_page_templates_types` (
+					`id` int(11) unsigned NOT NULL auto_increment,
+					`page_template_id` int(11) unsigned NOT NULL,
+					`type` varchar(50) NOT NULL,
+					PRIMARY KEY (`id`),
+					KEY `page_template_id` (`page_template_id`,`type`)
+				) ENGINE=MyISAM"
+			);
+		
 		}
 		
 	}
