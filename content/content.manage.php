@@ -616,7 +616,7 @@
 			$this->Form->setAttribute('action', $this->_uri . '/manage/template/' . $this->_context[1] . '/');
 			
 			$filename = $this->_context[1] . '.xsl';
-			$file_abs = PAGES . '/templates/' . $filename;
+			$file_abs = PAGES . '/_page_template_' . $filename;
 			
 			$is_child = strrpos($this->_context[1],'_');
 			$pagename = ($is_child != false ? substr($this->_context[1], $is_child + 1) : $this->_context[1]);
@@ -723,7 +723,7 @@
 		
 		public function __actionTemplate() {
 			$filename = $this->_context[1] . '.xsl';
-			$file_abs = PAGES . '/templates/' . $filename;
+			$file_abs = PAGES . '/_page_template_' . $filename;
 			$fields = $_POST['fields'];
 			$this->_errors = array();
 			
@@ -1157,7 +1157,7 @@
 		
 		protected function __updatePageFiles($new_path, $new_handle, $old_path = null, $old_handle = null) {
 			$new = PAGES . '/' . $this->__createHandle($new_path, $new_handle) . '.xsl';
-			$old = PAGES . '/templates/' . $this->__createHandle($old_path, $old_handle) . '.xsl';
+			$old = PAGES . '/_page_template_' . $this->__createHandle($old_path, $old_handle) . '.xsl';
 			$data = null;
 			
 			// Nothing to do:
@@ -1176,8 +1176,8 @@
 		}
 		
 		protected function __updatePageTemplateFiles($new_path, $new_handle, $old_path = null, $old_handle = null) {
-			$new = PAGES . '/templates/' . $this->__createHandle($new_path, $new_handle) . '.xsl';
-			$old = PAGES . '/templates/' . $this->__createHandle($old_path, $old_handle) . '.xsl';
+			$new = PAGES . '/_page_template_' . $this->__createHandle($new_path, $new_handle) . '.xsl';
+			$old = PAGES . '/_page_template_' . $this->__createHandle($old_path, $old_handle) . '.xsl';
 			$data = null;
 			
 			// Nothing to do:
@@ -1196,7 +1196,7 @@
 		}
 		
 		protected function __deletePageTemplateFiles($path, $handle) {
-			$file = PAGES . '/templates/' . trim(str_replace('/', '_', $path . '_' . $handle), '_') . '.xsl';
+			$file = PAGES . '/_page_template_' . trim(str_replace('/', '_', $path . '_' . $handle), '_') . '.xsl';
 			
 			// Nothing to do:
 			if(!file_exists($file)) return true;
