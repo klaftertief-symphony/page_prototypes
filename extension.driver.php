@@ -23,18 +23,6 @@
 		
 		public function getSubscribedDelegates(){
 			return array(
-				// array(
-				// 	'page' => '/system/preferences/',
-				// 	'delegate' => 'AddCustomPreferenceFieldsets',
-				// 	'callback' => 'appendPreferences'
-				// ),
-				// 
-				// array(
-				// 	'page' => '/system/preferences/',
-				// 	'delegate' => 'Save',
-				// 	'callback' => '__SavePreferences'
-				// ),
-				
 				array(
 					'page' => '/frontend/',
 					'delegate' => 'FrontendPageResolved',
@@ -45,8 +33,6 @@
 		}
 		
 		public function frontendPageResolved(&$context) {
-			
-			// TODO check for setting in config.php
 			
 			if (!(integer)$page_id = $context['page_data']['id']) {
 				return;

@@ -558,23 +558,23 @@
 			}			
 		}
 		
-		protected function __actionDelete($pages, $redirect) {
+		protected function __actionDelete($page_templates, $redirect) {
 			$success = true;
 			
-			if(!is_array($pages)) $pages = array($pages);
+			if(!is_array($page_templates)) $page_templates = array($page_templates);
 			
-			foreach ($pages as $page_id) {
-				$page = Symphony::Database()->fetchRow(0, "
+			foreach ($page_templates as $template_id) {
+				$template = Symphony::Database()->fetchRow(0, "
 					SELECT
 						t.*
 					FROM
 						`tbl_page_templates` AS t
 					WHERE
-						t.id = '{$page_id}'
+						t.id = '{$template_id}'
 					LIMIT 1
 				");
 				
-				if(empty($page)) {
+				if(empty($template)) {
 					$success = false;
 					$this->pageAlert(
 						__('Page Template could not be deleted because it does not exist.'),
@@ -584,27 +584,63 @@
 					break;
 				}
 				
+				$references = Symphony::Database()->fetchCol('page_id', "
+					SELECT
+						t.page_id
+					FROM
+						`tbl_pages_page_templates` AS t
+					WHERE
+						t.page_template_id = '{$template_id}'
+				");
 				
-				if(!$this->__deletePageTemplateFiles($page['path'], $page['handle'])) {
-					$this->_hilights[] = $page['id'];
+				if (is_array($references) && !empty($references)) {
+					$success = false;
+					$page_links = array();
+					
+					foreach ($references as $page_id) {
+						$title = Symphony::Database()->fetchVar('title', 0, "
+							SELECT
+								p.title
+							FROM
+								`tbl_pages` AS p
+							WHERE
+								p.id = '{$page_id}'
+							LIMIT 1
+						");
+						if ($title) {
+							$page_links[] = '<a href="' . URL . '/symphony/blueprints/pages/edit/' . $page_id . '/">' . $title . '</a>';
+						}
+					}
+					$page_links = implode(', ', $page_links);
+					
+					$this->pageAlert(
+						__('Template could not be deleted because it is referenced by the following pages.') . $page_links,
+						Alert::ERROR
+					);
+					
+					break;
+				}
+				
+				if(!$this->__deletePageTemplateFiles($template['path'], $template['handle'])) {
+					$this->_hilights[] = $template['id'];
 					$success = false;
 					$this->pageAlert(
-						__('One or more page templates could not be deleted. Please check permissions on <code>/workspace/pages/templates</code>.'),
+						__('One or more page templates could not be deleted. Please check permissions on <code>/workspace/pages</code>.'),
 						Alert::ERROR
 					);
 					
 					continue;
 				}
 				
-				Symphony::Database()->delete('tbl_page_templates', " `id` = '{$page_id}'");
-				Symphony::Database()->delete('tbl_page_templates_types', " `page_template_id` = '{$page_id}'");
+				Symphony::Database()->delete('tbl_page_templates', " `id` = '{$template_id}'");
+				// Symphony::Database()->delete('tbl_page_templates_types', " `page_template_id` = '{$page_id}'");
 				Symphony::Database()->query("
 					UPDATE
 						tbl_page_templates
 					SET
 						`sortorder` = (`sortorder` + 1)
 					WHERE
-						`sortorder` < '$page_id'
+						`sortorder` < '$template_id'
 				");
 			}
 			
