@@ -29,7 +29,7 @@
 				array(__('Template'), 'col'),
 				array(__('<acronym title="Universal Resource Locator">URL</acronym> Parameters'), 'col'),
 				array(__('Type'), 'col'),
-				array(__('Action'), 'col')
+				array(__('Available Actions'), 'col')
 			);
 			
 			$sql = "
@@ -59,6 +59,7 @@
 					$page_title = $this->resolvePageTemplateTitle($page['id']);
 					$page_edit_url = $this->_uri . '/manage/edit/' . $page['id'] . '/';
 					$page_spawn_url = $this->_uri . '/manage/spawn/' . $page['id'] . '/';
+					$page_reference_url = $this->_uri . '/manage/reference/' . $page['id'] . '/';
 					$page_template = $this->__createHandle($page['path'], $page['handle']);
 					$page_template_url = Administration::instance()->getCurrentPageURL() . 'template/' . $page_template;
 					$page_types = Symphony::Database()->fetchCol('type', "
@@ -96,9 +97,10 @@
 						$col_types = Widget::TableData(__('None'), 'inactive');
 					}
 					
-					$col_actions = Widget::TableData(Widget::Anchor(
-						__('Create a %1$s Page', array($page_title)), $page_spawn_url
-					));
+					$col_actions = Widget::TableData(
+						'<a title="' . __('Create a new page by copying the template') . '" href="' . $page_spawn_url . '">' . __('Copy') . '</a> ' . __('or') .
+						' <a title="' . __('Create a new page by referencing the template') . '" href="' . $page_reference_url . '">' . __('Reference') . '</a>'
+					);
 					
 					if($bOdd) $class[] = 'odd';
 					if(in_array($page['id'], $this->_hilights)) $class[] = 'failed';
@@ -1176,6 +1178,385 @@
 								'type' => $type
 							),
 							'tbl_pages_types'
+						);
+					}
+					
+					if($redirect) redirect(URL . $redirect);
+				}
+				
+				if(is_array($this->_errors) && !empty($this->_errors)) {
+					$this->pageAlert(
+						__('An error occurred while processing this form. <a href="#error">See below for details.</a>'),
+						Alert::ERROR
+					);
+				}
+			}			
+		}
+		
+		public function __viewReference() {
+			$this->setPageType('form');
+			
+			$fields = array();
+			
+			// Verify template exists:
+			if($this->_context[0] == 'reference') {
+				if(!$template_id = $this->_context[1]) redirect($this->_uri . '/manage/');
+				
+				$existing = Symphony::Database()->fetchRow(0, "
+					SELECT
+						t.*
+					FROM
+						`tbl_page_templates` AS t
+					WHERE
+						t.id = '{$template_id}'
+					LIMIT 1
+				");
+				
+				if(!$existing) {
+					$this->_Parent->customError(
+						E_USER_ERROR, __('Page not found'),
+						__('The page you requested to edit does not exist.'),
+						false, true, 'error', array(
+							'header'	=> 'HTTP/1.0 404 Not Found'
+						)
+					);
+				}
+			}
+			if ($this->_context[0] == 'reference') {
+				$fields = $existing;
+				$types = Symphony::Database()->fetchCol('type', "
+					SELECT
+						p.type
+					FROM
+						`tbl_page_templates_types` AS p
+					WHERE
+						p.page_template_id = '{$template_id}'
+					ORDER BY
+						p.type ASC
+				");
+				
+				$fields['type'] = @implode(', ', $types);
+				$fields['data_sources'] = preg_split('/,/i', $fields['data_sources'], -1, PREG_SPLIT_NO_EMPTY);
+				$fields['events'] = preg_split('/,/i', $fields['events'], -1, PREG_SPLIT_NO_EMPTY);
+			}
+			
+			$title = $fields['title'];
+			if(trim($title) == '') $title = $existing['title'];
+			
+			$this->setTitle(__(
+				($title ? '%1$s &ndash; %2$s &ndash; %3$s &ndash; %4$s' : '%1$s &ndash; %2$s'),
+				array(
+					__('Symphony'),
+					__('Page Templates'),
+					__('Reference'),
+					$title
+				)
+			));
+			if($existing) {
+				$template_name = $fields['handle'];
+				$this->appendSubheading($title ? __('Reference a %1$s page', array($title)) : __('Untitled'));
+			}
+			else {
+				$this->appendSubheading($title ? __('Reference a %1$s page', array($title)) : __('Untitled'));
+			}
+			
+		// Title --------------------------------------------------------------
+
+			$fieldset = new XMLElement('fieldset');
+			$fieldset->setAttribute('class', 'settings');
+			$fieldset->appendChild(new XMLElement('legend', __('Page Settings')));
+
+			$label = Widget::Label(__('Title'));		
+			$label->appendChild(Widget::Input(
+				'fields[title]', General::sanitize(__('A %1$s page', array($title)))
+			));
+
+			if(isset($this->_errors['title'])) {
+				$label = $this->wrapFormElementWithError($label, $this->_errors['title']);
+			}
+
+			$fieldset->appendChild($label);
+
+		// Handle -------------------------------------------------------------
+
+			$group = new XMLElement('div');
+			$group->setAttribute('class', 'group');
+			$column = new XMLElement('div');
+
+			$label = Widget::Label(__('URL Handle'));
+			$label->appendChild(Widget::Input(
+				'fields[handle]'
+			));
+
+			if(isset($this->_errors['handle'])) {
+				$label = $this->wrapFormElementWithError($label, $this->_errors['handle']);
+			}
+
+			$column->appendChild($label);
+
+			$group->appendChild($column);
+
+		// Parent ---------------------------------------------------------
+
+			$column = new XMLElement('div');
+			$label = Widget::Label(__('Parent Page'));
+
+			$pages = Symphony::Database()->fetch("
+				SELECT
+					p.*
+				FROM
+					`tbl_pages` AS p
+				WHERE
+					p.id != '{$page_id}'
+				ORDER BY
+					p.title ASC
+			");
+
+			$options = array(
+				array('', false, '/')
+			);
+
+			if(is_array($pages) && !empty($pages)) {
+				if(!function_exists('__compare_pages')) {
+					function __compare_pages($a, $b) {
+						return strnatcasecmp($a[2], $b[2]);
+					}
+				}
+
+				foreach ($pages as $page) {
+					$options[] = array(
+						$page['id'], $fields['parent'] == $page['id'],
+						'/' . $this->_Parent->resolvePagePath($page['id'])
+					);
+				}
+
+				usort($options, '__compare_pages');
+			}
+
+			$label->appendChild(Widget::Select(
+				'fields[parent]', $options
+			));
+			$column->appendChild($label);
+
+			$group->appendChild($column);
+			$fieldset->appendChild($group);
+
+		// Hidden inputs
+			$params = Widget::Input('fields[params]', $fields['params'], 'hidden');
+			$type = Widget::Input('fields[type]', $fields['type'], 'hidden');
+			$fieldset->appendChild($params);
+			$fieldset->appendChild($type);
+
+			$manager = new EventManager($this->_Parent);
+			$events = $manager->listAll();
+			$options = array();
+			if(is_array($events) && !empty($events)) {		
+				foreach ($events as $name => $about) $options[] = array(
+					$name, @in_array($name, $fields['events']), $about['name']
+				);
+			}
+			$fieldset->appendChild(Widget::Select('fields[events][]', $options, array('multiple' => 'multiple', 'style' => 'display: none;')));	
+
+			$manager = new DatasourceManager($this->_Parent);
+			$datasources = $manager->listAll();
+			$options = array();
+			if(is_array($datasources) && !empty($datasources)) {		
+				foreach ($datasources as $name => $about) $options[] = array(
+					$name, @in_array($name, $fields['data_sources']), $about['name']
+				);
+			}
+			$fieldset->appendChild(Widget::Select('fields[data_sources][]', $options, array('multiple' => 'multiple', 'style' => 'display: none;')));
+
+			$this->Form->appendChild($fieldset);
+
+		// Controls -----------------------------------------------------------
+
+			$div = new XMLElement('div');
+			$div->setAttribute('class', 'actions');
+			$div->appendChild(Widget::Input(
+				'action[save]', ($this->_context[0] == 'edit' ? __('Save Changes') : __('Create %1$s page', array($title))),
+				'submit', array('accesskey' => 's')
+			));
+
+			$this->Form->appendChild($div);
+
+			if(isset($_REQUEST['parent']) && is_numeric($_REQUEST['parent'])){
+				$this->Form->appendChild(new XMLElement('input', NULL, array('type' => 'hidden', 'name' => 'parent', 'value' => $_REQUEST['parent'])));
+			}
+			
+		}
+		
+		public function __actionReference() {
+			if($this->_context[0] == 'reference' && !$template_id = (integer)$this->_context[1]) {
+				redirect($this->_uri . '/manage/');
+			}
+			
+			if ($this->_context[0] == 'reference') {
+				$template = Symphony::Database()->fetchRow(0, "
+					SELECT
+						t.*
+					FROM
+						`tbl_page_templates` AS t
+					WHERE
+						t.id = '{$template_id}'
+					LIMIT 1
+				");
+
+				if(!$template) {
+					$this->_Parent->customError(
+						E_USER_ERROR, __('Page not found'),
+						__('The page template you requested to spawn from does not exist.'),
+						false, true, 'error', array(
+							'header'	=> 'HTTP/1.0 404 Not Found'
+						)
+					);
+				}
+			}
+			
+			
+			$parent_link_suffix = NULL;
+			if(isset($_REQUEST['parent']) && is_numeric($_REQUEST['parent'])){
+				$parent_link_suffix = '?parent=' . $_REQUEST['parent'];
+			}
+		
+			if(@array_key_exists('save', $_POST['action'])) {
+				
+				$fields = $_POST['fields'];
+				$this->_errors = array();
+				
+				if(!isset($fields['title']) || trim($fields['title']) == '') {
+					$this->_errors['title'] = __('Title is a required field');
+				}
+				
+				if(trim($fields['type']) != '' && preg_match('/(index|404|403)/i', $fields['type'])) {
+					$types = preg_split('/\s*,\s*/', strtolower($fields['type']), -1, PREG_SPLIT_NO_EMPTY);
+					
+					if(in_array('index', $types) && $this->__typeUsed(0, 'index')) {
+						$this->_errors['type'] = __('An index type page already exists.');
+					}
+					
+					elseif(in_array('404', $types) && $this->__typeUsed(0, '404')) {	
+						$this->_errors['type'] = __('A 404 type page already exists.');
+					}
+					
+					elseif(in_array('403', $types) && $this->__typeUsed(0, '403')) {	
+						$this->_errors['type'] = __('A 403 type page already exists.');
+					}
+				}
+				
+				if(empty($this->_errors)) {
+					$autogenerated_handle = false;
+					
+					$fields['sortorder'] = Symphony::Database()->fetchVar('next', 0, "
+						SELECT
+							MAX(p.sortorder) + 1 AS `next`
+						FROM
+							`tbl_pages` AS p
+						LIMIT 1
+					");
+					
+					if(empty($fields['sortorder']) || !is_numeric($fields['sortorder'])) {
+						$fields['sortorder'] = 1;
+					}
+					
+					if(trim($fields['handle'] ) == '') { 
+						$fields['handle'] = $fields['title'];
+						$autogenerated_handle = true;
+					}
+					
+					$fields['handle'] = Lang::createHandle($fields['handle']);
+
+					if($fields['params']) {
+						$fields['params'] = trim(preg_replace('@\/{2,}@', '/', $fields['params']), '/');
+					}
+					
+					// Clean up type list
+					$types = preg_split('/\s*,\s*/', $fields['type'], -1, PREG_SPLIT_NO_EMPTY);
+					$types = @array_map('trim', $types);
+					unset($fields['type']);
+					
+					$fields['parent'] = ($fields['parent'] != __('None') ? $fields['parent'] : null);
+					$fields['data_sources'] = is_array($fields['data_sources']) ? implode(',', $fields['data_sources']) : NULL;
+					$fields['events'] = is_array($fields['events']) ? implode(',', $fields['events']) : NULL;
+					$fields['path'] = null;
+					
+					if($fields['parent']) {
+						$fields['path'] = $this->_Parent->resolvePagePath((integer)$fields['parent']);
+					}
+					
+					// Check for duplicates:
+					$duplicate = Symphony::Database()->fetchRow(0, "
+						SELECT
+							p.*
+						FROM
+							`tbl_pages` AS p
+						WHERE
+							p.handle = '" . $fields['handle'] . "'
+							AND p.path " . ($fields['path'] ? " = '" . $fields['path'] . "'" : ' IS NULL') .  " 
+						LIMIT 1
+					");
+					
+					// Copy file:
+					$file_created = $this->__updatePageFiles(
+						$fields['path'], $fields['handle'],
+						null, $template['handle']
+					);
+					
+					if(!$file_created) {
+						$redirect = null;
+						$this->pageAlert(
+							__('Page could not be written to disk. Please check permissions on <code>/workspace/pages</code>.'),
+							Alert::ERROR
+						);
+					}
+					
+					if($duplicate) {
+						if($autogenerated_handle) {
+							$this->_errors['title'] = __('A page with that title already exists');
+							
+						} else {
+							$this->_errors['handle'] = __('A page with that handle already exists'); 
+						}
+						
+					// Insert the new data:
+					}
+					else {
+						if(!Symphony::Database()->insert($fields, 'tbl_pages')) {
+							$this->pageAlert(
+								__(
+									'Unknown errors occurred while attempting to save. Please check your <a href="%s">activity log</a>.',
+									array(
+										URL . '/symphony/system/log/'
+									)
+								),
+								Alert::ERROR
+							);
+							
+						} else {
+							$page_id = Symphony::Database()->getInsertID();
+							$redirect = "/symphony/blueprints/pages/edit/{$page_id}/created/{$parent_link_suffix}";
+						}
+					}
+					
+					// Assign page types:
+					if($page_id && is_array($types) && !empty($types)) {
+						foreach ($types as $type) Symphony::Database()->insert(
+							array(
+								'page_id' => $page_id,
+								'type' => $type
+							),
+							'tbl_pages_types'
+						);
+					}
+					
+					// Create reference DB entry:
+					if($page_id) {
+						Symphony::Database()->insert(
+							array(
+								'page_id' => $page_id,
+								'page_template_id' => $template_id
+							),
+							'tbl_pages_page_templates'
 						);
 					}
 					
