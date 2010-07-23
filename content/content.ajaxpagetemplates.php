@@ -52,6 +52,8 @@
 			");
 			$fields['type'] = @implode(', ', $types);
 			
+			$fields['data_sources'] = @explode(',', $fields['data_sources']);
+			$fields['events'] = @explode(',', $fields['events']);
 			
 			$this->_Result = json_encode($fields);
 		}
