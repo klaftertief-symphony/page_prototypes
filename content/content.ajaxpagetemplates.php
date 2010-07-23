@@ -40,6 +40,19 @@
 			
 			$fields = $existing;
 			
+			$types = Symphony::Database()->fetchCol('type', "
+				SELECT
+					p.type
+				FROM
+					`tbl_page_templates_types` AS p
+				WHERE
+					p.page_template_id = '{$template_id}'
+				ORDER BY
+					p.type ASC
+			");
+			$fields['type'] = @implode(', ', $types);
+			
+			
 			$this->_Result = json_encode($fields);
 		}
 		
