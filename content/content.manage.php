@@ -588,11 +588,11 @@
 				
 				$references = Symphony::Database()->fetchCol('page_id', "
 					SELECT
-						t.page_id
+						p.page_id
 					FROM
-						`tbl_pages_page_templates` AS t
+						`tbl_pages` AS p
 					WHERE
-						t.page_template_id = '{$template_id}'
+						p.page_template_id = '{$template_id}'
 				");
 				
 				if (is_array($references) && !empty($references)) {
@@ -1484,6 +1484,8 @@
 						$fields['path'] = $this->_Parent->resolvePagePath((integer)$fields['parent']);
 					}
 					
+					$fields['page_template_id'] = $template_id;
+					
 					// Check for duplicates:
 					$duplicate = Symphony::Database()->fetchRow(0, "
 						SELECT
@@ -1546,17 +1548,6 @@
 								'type' => $type
 							),
 							'tbl_pages_types'
-						);
-					}
-					
-					// Create reference DB entry:
-					if($page_id) {
-						Symphony::Database()->insert(
-							array(
-								'page_id' => $page_id,
-								'page_template_id' => $template_id
-							),
-							'tbl_pages_page_templates'
 						);
 					}
 					

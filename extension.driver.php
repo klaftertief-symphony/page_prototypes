@@ -20,15 +20,23 @@
 			);
 		}
 		
-		
 		public function getSubscribedDelegates(){
 			return array(
 				array(
 					'page' => '/frontend/',
 					'delegate' => 'FrontendPageResolved',
 					'callback' => 'frontendPageResolved'
+				),
+				array(
+					'page' => '/administration/',
+					'delegate' => 'AdminPagePreGenerate',
+					'callback' => 'adminPagePreGenerate'
+				),
+				array(
+					'page' => '/administration/',
+					'delegate' => 'AdminPagePostGenerate',
+					'callback' => 'adminPagePostGenerate'
 				)
-				
 			);
 		}
 		
@@ -40,11 +48,11 @@
 			
 			$template_id = Symphony::Database()->fetchVar('page_template_id', 0, "
 				SELECT
-					pt.page_template_id
+					p.page_template_id
 				FROM
-					`tbl_pages_page_templates` AS pt
+					`tbl_pages` AS p
 				WHERE
-					pt.page_id = '{$page_id}'
+					p.page_id = '{$page_id}'
 				LIMIT 1
 			");
 			
@@ -93,14 +101,17 @@
 		}
 
 		public function uninstall(){
-			$this->_Parent->Database->query("DROP TABLE `tbl_page_templates`");
-			$this->_Parent->Database->query("DROP TABLE `tbl_page_templates_types`");
-			$this->_Parent->Database->query("DROP TABLE `tbl_pages_page_templates`");
+			Symphony::Database()->query("DROP TABLE `tbl_page_templates`");
+			Symphony::Database()->query("DROP TABLE `tbl_page_templates_types`");
+			Symphony::Database()->query(
+				"ALTER TABLE `tbl_pages`
+					DROP `page_template_id`"
+			);
 		}
 		
 		public function install(){
 			
-			$templates = $this->_Parent->Database->query(
+			$templates = Symphony::Database()->query(
 				"CREATE TABLE `tbl_page_templates` (
 					`id` int(11) unsigned NOT NULL auto_increment,
 					`parent` int(11),
@@ -116,7 +127,7 @@
 				) TYPE=MyISAM;"
 			);
 
-			$templates_types = $this->_Parent->Database->query(
+			$templates_types = Symphony::Database()->query(
 				"CREATE TABLE `tbl_page_templates_types` (
 					`id` int(11) unsigned NOT NULL auto_increment,
 					`page_template_id` int(11) unsigned NOT NULL,
@@ -127,15 +138,9 @@
 				) ENGINE=MyISAM"
 			);
 			
-			$pages_templates = $this->_Parent->Database->query(
-				"CREATE TABLE `tbl_page_templates_types` (
-					`id` int(11) unsigned NOT NULL auto_increment,
-					`page_id` int(11) unsigned NOT NULL,
-					`page_template_id` int(11) unsigned NOT NULL,
-					PRIMARY KEY (`id`),
-					KEY `page_id` (`page_id`),
-					KEY `page_template_id` (`page_template_id`)
-				) ENGINE=MyISAM"
+			$pages_templates = Symphony::Database()->query(
+				"ALTER TABLE `tbl_pages`
+					ADD `page_template_id` int(11) default NULL"
 			);
 		
 			if($templates && $templates_types && $pages_templates) {
@@ -145,6 +150,14 @@
 				return false;
 			} 
 		
+		}
+
+		public function adminPagePreGenerate($context) {
+			// print_r($context);
+		}
+
+		public function adminPagePostGenerate($context) {
+			// print_r($context);
 		}
 		
 	}
