@@ -52,7 +52,7 @@
 				FROM
 					`tbl_pages` AS p
 				WHERE
-					p.id = '{$page_id}'
+					p.id = '{$page_id}' AND p.page_template_referenced = 'yes'
 				LIMIT 1
 			");
 			
