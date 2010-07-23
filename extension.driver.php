@@ -28,9 +28,9 @@
 					'callback' => 'frontendPageResolved'
 				),
 				array(
-					'page' => '/administration/',
-					'delegate' => 'AdminPagePreGenerate',
-					'callback' => 'adminPagePreGenerate'
+					'page' => '/backend/',
+					'delegate' => 'InitaliseAdminPageHead',
+					'callback' => 'initaliseAdminPageHead'
 				),
 				array(
 					'page' => '/administration/',
@@ -105,7 +105,8 @@
 			Symphony::Database()->query("DROP TABLE `tbl_page_templates_types`");
 			Symphony::Database()->query(
 				"ALTER TABLE `tbl_pages`
-					DROP `page_template_id`"
+					DROP `page_template_id`,
+					DROP `page_template_referenced`"
 			);
 		}
 		
@@ -140,7 +141,8 @@
 			
 			$pages_templates = Symphony::Database()->query(
 				"ALTER TABLE `tbl_pages`
-					ADD `page_template_id` int(11) default NULL"
+					ADD `page_template_id` int(11) default NULL,
+					ADD `page_template_referenced` enum('yes','no') NULL default 'no'"
 			);
 		
 			if($templates && $templates_types && $pages_templates) {
@@ -152,12 +154,98 @@
 		
 		}
 
-		public function adminPagePreGenerate($context) {
-			// print_r($context);
+		public function initaliseAdminPageHead($context) {
+			$page = $context['parent']->Page;
+
+			// Include JS?
+			if (($page instanceof ContentBlueprintsPages) && !($page instanceof contentExtensionPage_templatesManage) && ($page->_context[0] == 'edit' || $page->_context[0] == 'template')) {
+				$page->addScriptToHead(URL . '/extensions/page_templates/assets/page-edit.js', 565656);
+			}
 		}
 
 		public function adminPagePostGenerate($context) {
-			// print_r($context);
+			$page = $context['parent']->Page;
+			if (($page instanceof ContentBlueprintsPages) && !($page instanceof contentExtensionPage_templatesManage) && ($page->_context[0] == 'edit' || $page->_context[0] == 'template')) {
+				$action = $page->_context[0];
+
+				$dom = new DOMDocument;
+				$dom->preserveWhiteSpace = true; 
+				$dom->loadHTML($context['output']);
+				$form = $dom->getElementsByTagName('form')->item(0);
+
+				if ($action == 'edit') {
+					$page_id = $page->_context[1];
+					$templates = Symphony::Database()->fetch("
+						SELECT
+							t.id, t.title
+						FROM
+							`tbl_page_templates` AS t
+						ORDER BY
+							t.sortorder ASC
+					");
+					$selected = Symphony::Database()->fetch("
+						SELECT
+							p.page_template_id, p.page_template_referenced
+						FROM
+							`tbl_pages` AS p
+						WHERE
+							p.id = '{$page_id}'
+						LIMIT 1
+					");
+					$selected = $selected[0];
+
+					$fieldset = $form->getElementsByTagName('fieldset')->item(0);
+
+					$settings = $dom->createElement('fieldset');
+					$settings->setAttribute('class', 'settings');
+					$legend = $dom->createElement('legend', __('Template settings'));
+					$settings->appendChild($legend);
+					
+					$group = $dom->createElement('div');
+					$group->setAttribute('class', 'group');
+
+					$label = $dom->createElement('label', __('Page Template'));
+					$select = $dom->createElement('select');
+					$select->setAttribute('name', 'fields[page_template_id]');
+					$option = $dom->createElement('option', __('None'));
+					$select->appendChild($option);
+					foreach ($templates as $template) {
+						$option = $dom->createElement('option', $template['title']);
+						$option->setAttribute('value', $template['id']);
+						if ($selected['page_template_id'] == $template['id']) {
+							$option->setAttribute('selected', 'selected');
+						}
+						$select->appendChild($option);
+					}
+					$label->appendChild($select);
+					$group->appendChild($label);
+
+					$label = $dom->createElement('label');
+					$hidden = $dom->createElement('input');
+					$hidden->setAttribute('type', 'hidden');
+					$hidden->setAttribute('value', 'no');
+					$hidden->setAttribute('name', 'fields[page_template_referenced]');
+					$group->appendChild($hidden);
+					$checkbox = $dom->createElement('input');
+					$checkbox->setAttribute('type', 'checkbox');
+					$checkbox->setAttribute('value', 'yes');
+					$checkbox->setAttribute('name', 'fields[page_template_referenced]');
+					if ($selected['page_template_id'] && $selected['page_template_referenced'] == 'yes') {
+						$checkbox->setAttribute('checked', 'checked');
+					}
+					
+					$text = $dom->createTextNode(__('Use as reference'));
+					$label->appendChild($checkbox);
+					$label->appendChild($text);
+					$group->appendChild($label);
+
+					$settings->appendChild($group);
+
+					$fieldset->parentNode->insertBefore($settings, $fieldset);
+				}
+
+				$context['output'] = $dom->saveHTML();
+			}
 		}
 		
 	}
