@@ -1116,6 +1116,9 @@
 						$fields['path'] = $this->_Parent->resolvePagePath((integer)$fields['parent']);
 					}
 					
+					$fields['page_template_id'] = $template_id;
+					$fields['page_template_referenced'] = 'no';
+					
 					// Check for duplicates:
 					$duplicate = Symphony::Database()->fetchRow(0, "
 						SELECT
@@ -1485,6 +1488,7 @@
 					}
 					
 					$fields['page_template_id'] = $template_id;
+					$fields['page_template_referenced'] = 'yes';
 					
 					// Check for duplicates:
 					$duplicate = Symphony::Database()->fetchRow(0, "

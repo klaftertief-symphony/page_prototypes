@@ -9,7 +9,7 @@
 		public function about() {
 			return array(
 				'name'			=> 'Page Templates',
-				'version'		=> '0.2',
+				'version'		=> '0.4',
 				'release-date'	=> '2010-07-14',
 				'author'		=> array(
 					'name'			=> 'Jonas Coch',
