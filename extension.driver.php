@@ -198,7 +198,7 @@
 
 					$settings = $dom->createElement('fieldset');
 					$settings->setAttribute('class', 'settings');
-					$legend = $dom->createElement('legend', __('Template settings'));
+					$legend = $dom->createElement('legend', __('Template Settings'));
 					$settings->appendChild($legend);
 					
 					$group = $dom->createElement('div');
@@ -206,9 +206,11 @@
 
 					$label = $dom->createElement('label', __('Page Template'));
 					$select = $dom->createElement('select');
+					$select->setAttribute('id', 'page_templates-page_template_id');
 					$select->setAttribute('name', 'fields[page_template_id]');
 					$option = $dom->createElement('option', __('None'));
 					$select->appendChild($option);
+					$option->setAttribute('value', '0');
 					foreach ($templates as $template) {
 						$option = $dom->createElement('option', $template['title']);
 						$option->setAttribute('value', $template['id']);
@@ -227,6 +229,7 @@
 					$hidden->setAttribute('name', 'fields[page_template_referenced]');
 					$group->appendChild($hidden);
 					$checkbox = $dom->createElement('input');
+					$checkbox->setAttribute('id', 'page_templates-page_template_referenced');
 					$checkbox->setAttribute('type', 'checkbox');
 					$checkbox->setAttribute('value', 'yes');
 					$checkbox->setAttribute('name', 'fields[page_template_referenced]');
@@ -234,7 +237,7 @@
 						$checkbox->setAttribute('checked', 'checked');
 					}
 					
-					$text = $dom->createTextNode(__('Use as reference'));
+					$text = $dom->createTextNode(__('Reference Template'));
 					$label->appendChild($checkbox);
 					$label->appendChild($text);
 					$group->appendChild($label);
