@@ -586,9 +586,9 @@
 					break;
 				}
 				
-				$references = Symphony::Database()->fetchCol('page_id', "
+				$references = Symphony::Database()->fetchCol('id', "
 					SELECT
-						p.page_id
+						p.id
 					FROM
 						`tbl_pages` AS p
 					WHERE

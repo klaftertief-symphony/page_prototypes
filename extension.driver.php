@@ -52,7 +52,7 @@
 				FROM
 					`tbl_pages` AS p
 				WHERE
-					p.page_id = '{$page_id}'
+					p.id = '{$page_id}'
 				LIMIT 1
 			");
 			
