@@ -33,3 +33,7 @@ There are currently two ways to create new pages using your prototypes:
 
 - When browsing the list of available templates, click the **Copy** or **Reference** link in the "Available Actions" column.
 - Immediately after creating a template you will see a **Create Page Copy from Prototype** and **Create Page Reference from Prototype** link in the page alert.
+
+### Edit Pages
+
+The extension adds a new fieldset to the pages editor. You can change the connected prototype there and choose between the copy- and reference mode.
