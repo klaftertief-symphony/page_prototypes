@@ -7,6 +7,8 @@
 
 A Symphony extension enabling the creation of pages from predefined prototypes.
 
+This extension is heavily inspired by [czheng](http://symphony-cms.com/get-involved/member/czheng/)'s [Page Templates](http://symphony-cms.com/download/extensions/view/22943/) extension and it is meant to be its successor.
+
 ## Installation
 
 1. Upload the 'page_prototypes' folder in this archive to your Symphony 'extensions' folder.
