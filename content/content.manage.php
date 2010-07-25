@@ -2,26 +2,26 @@
 	
 	require_once(CONTENT . '/content.blueprintspages.php');
 	
-	class contentExtensionPage_templatesManage extends contentBlueprintsPages {
+	class contentExtensionPage_prototypesManage extends contentBlueprintsPages {
 		protected $_driver = null;
 		protected $_uri = null;
 		
 		public function __construct(&$parent){
 			parent::__construct($parent);
 			
-			$this->_uri = URL . '/symphony/extension/page_templates';
-			$this->_driver = $this->_Parent->ExtensionManager->create('page_templates');
+			$this->_uri = URL . '/symphony/extension/page_prototypes';
+			$this->_driver = $this->_Parent->ExtensionManager->create('page_prototypes');
 		}
 		
 		public function __viewIndex() {
 			$this->setPageType('table');
-			$this->setTitle(__('%1$s &ndash; %2$s', array(__('Symphony'), __('Page Templates'))));
+			$this->setTitle(__('%1$s &ndash; %2$s', array(__('Symphony'), __('Page Prototypes'))));
 			
 			$heading = NULL;
 			
-			$this->appendSubheading(__('Page Templates') . $heading, Widget::Anchor(
+			$this->appendSubheading(__('Page Prototypes') . $heading, Widget::Anchor(
 				__('Create New'), Administration::instance()->getCurrentPageURL() . 'new/',
-				__('Create a new page template'), 'create button'
+				__('Create a new page prototype'), 'create button'
 			));
 			
 			$aTableHead = array(
@@ -34,18 +34,18 @@
 			
 			$sql = "
 				SELECT
-					t.*
+					p.*
 				FROM
-					`tbl_page_templates` AS t
+					`tbl_page_prototypes` AS p
 				ORDER BY
-					t.sortorder ASC
+					p.sortorder ASC
 			";
 		
-			$pages = Symphony::Database()->fetch($sql);
+			$prototypes = Symphony::Database()->fetch($sql);
 		
 			$aTableBody = array();
 			
-			if(!is_array($pages) or empty($pages)) {
+			if(!is_array($prototypes) or empty($prototypes)) {
 				$aTableBody = array(Widget::TableRow(array(
 					Widget::TableData(__('None found.'), 'inactive', null, count($aTableHead))
 				), 'odd'));
@@ -54,52 +54,52 @@
 			else {
 				$bOdd = true;
 				
-				foreach ($pages as $page) {
+				foreach ($prototypes as $prototype) {
 					$class = array();
-					$page_title = $this->resolvePageTemplateTitle($page['id']);
-					$page_edit_url = $this->_uri . '/manage/edit/' . $page['id'] . '/';
-					$page_spawn_url = $this->_uri . '/manage/spawn/' . $page['id'] . '/';
-					$page_reference_url = $this->_uri . '/manage/reference/' . $page['id'] . '/';
-					$page_template = $this->__createHandle($page['path'], $page['handle']);
-					$page_template_url = Administration::instance()->getCurrentPageURL() . 'template/' . $page_template;
-					$page_types = Symphony::Database()->fetchCol('type', "
+					$prototype_title = $this->resolvePagePrototypeTitle($prototype['id']);
+					$prototype_edit_url = $this->_uri . '/manage/edit/' . $prototype['id'] . '/';
+					$prototype_spawn_url = $this->_uri . '/manage/spawn/' . $prototype['id'] . '/';
+					$prototype_reference_url = $this->_uri . '/manage/reference/' . $prototype['id'] . '/';
+					$prototype_template = $this->__createHandle($prototype['path'], $prototype['handle']);
+					$prototype_template_url = Administration::instance()->getCurrentPageURL() . 'template/' . $prototype_template;
+					$prototype_types = Symphony::Database()->fetchCol('type', "
 						SELECT
 							t.type
 						FROM
-							`tbl_page_templates_types` AS t
+							`tbl_page_prototypes_types` AS t
 						WHERE
-							t.page_template_id = '".$page['id']."'
+							t.page_prototype_id = '".$prototype['id']."'
 						ORDER BY
 							t.type ASC
 					");
 					
 					$col_title = Widget::TableData(Widget::Anchor(
-						$page_title, $page_edit_url, $page['handle']
+						$prototype_title, $prototype_edit_url, $page['handle']
 					));
-					$col_title->appendChild(Widget::Input("items[{$page['id']}]", null, 'checkbox'));
+					$col_title->appendChild(Widget::Input("items[{$prototype['id']}]", null, 'checkbox'));
 					
 					$col_template = Widget::TableData(Widget::Anchor(
-						$page_template . '.xsl',
-						$page_template_url
+						$prototype_template . '.xsl',
+						$prototype_template_url
 					));
 					
-					if($page['params']) {
-						$col_params = Widget::TableData(trim($page['params'], '/'));
+					if($prototype['params']) {
+						$col_params = Widget::TableData(trim($prototype['params'], '/'));
 						
 					} else {
 						$col_params = Widget::TableData(__('None'), 'inactive');
 					}
 					
-					if(!empty($page_types)) {
-						$col_types = Widget::TableData(implode(', ', $page_types));
+					if(!empty($prototype_types)) {
+						$col_types = Widget::TableData(implode(', ', $prototype_types));
 						
 					} else {
 						$col_types = Widget::TableData(__('None'), 'inactive');
 					}
 					
 					$col_actions = Widget::TableData(
-						'<a title="' . __('Create a new page by copying the template') . '" href="' . $page_spawn_url . '">' . __('Copy') . '</a> ' . __('or') .
-						' <a title="' . __('Create a new page by referencing the template') . '" href="' . $page_reference_url . '">' . __('Reference') . '</a>'
+						'<a title="' . __('Create a new page by copying the prototype') . '" href="' . $prototype_spawn_url . '">' . __('Copy') . '</a> ' . __('or') .
+						' <a title="' . __('Create a new page by referencing the prototype') . '" href="' . $prototype_reference_url . '">' . __('Reference') . '</a>'
 					);
 					
 					if($bOdd) $class[] = 'odd';
@@ -153,24 +153,24 @@
 			$this->setPageType('form');
 			$fields = array();
 			
-			// Verify template exists:
+			// Verify prototype exists:
 			if($this->_context[0] == 'edit') {
-				if(!$template_id = $this->_context[1]) redirect($this->_uri . '/manage/');
+				if(!$prototype_id = $this->_context[1]) redirect($this->_uri . '/manage/');
 				
 				$existing = Symphony::Database()->fetchRow(0, "
 					SELECT
-						t.*
+						p.*
 					FROM
-						`tbl_page_templates` AS t
+						`tbl_page_prototype` AS p
 					WHERE
-						t.id = '{$template_id}'
+						p.id = '{$prototype_id}'
 					LIMIT 1
 				");
 				
 				if(!$existing) {
 					$this->_Parent->customError(
 						E_USER_ERROR, __('Page not found'),
-						__('The page you requested to edit does not exist.'),
+						__('The prototype you requested to edit does not exist.'),
 						false, true, 'error', array(
 							'header'	=> 'HTTP/1.0 404 Not Found'
 						)
@@ -188,12 +188,13 @@
 						
 						$this->pageAlert(
 							__(
-								'Page template updated at %1$s. <a href="%2$s">Create another?</a> <a href="%3$s">View all Page Templates</a> <a href="%4$s">Create Page from Template</a>',
+								'Page prototype updated at %1$s. <a href="%2$s">Create another?</a> <a href="%3$s">View all Page Prototypes</a> <a href="%4$s">Create Page Copy from Prototype</a> <a href="%5$s">Create Page Reference from Prototype</a>',
 								array(
 									DateTimeObj::getTimeAgo(__SYM_TIME_FORMAT__), 
 									$this->_uri . '/manage/new/',
 									$this->_uri . '/manage/',
-									$this->_uri . '/manage/spawn/' . $template_id,
+									$this->_uri . '/manage/spawn/' . $prototype_id,
+									$this->_uri . '/manage/reference/' . $prototype_id,
 								)
 							), 
 							Alert::SUCCESS);
@@ -204,12 +205,13 @@
 
 						$this->pageAlert(
 							__(
-								'Page template created at %1$s. <a href="%2$s">Create another?</a> <a href="%3$s">View all Page Templates</a> <a href="%4$s">Create Page from Template</a>', 
+								'Page prototype created at %1$s. <a href="%2$s">Create another?</a> <a href="%3$s">View all Page Prototypes</a> <a href="%4$s">Create Page Copy from Prototype</a> <a href="%5$s">Create Page Reference from Prototype</a>',
 								array(
 									DateTimeObj::getTimeAgo(__SYM_TIME_FORMAT__), 
 									$this->_uri . '/manage/new/',
 									$this->_uri . '/manage/',
-									$this->_uri . '/manage/spawn/' . $template_id,
+									$this->_uri . '/manage/spawn/' . $prototype_id,
+									$this->_uri . '/manage/reference/' . $prototype_id,
 								)
 							), 
 							Alert::SUCCESS);
@@ -230,9 +232,9 @@
 					SELECT
 						p.type
 					FROM
-						`tbl_page_templates_types` AS p
+						`tbl_page_prototypes_types` AS p
 					WHERE
-						p.page_template_id = '{$template_id}'
+						p.page_prototype_id = '{$prototype_id}'
 					ORDER BY
 						p.type ASC
 				");
@@ -249,13 +251,13 @@
 				($title ? '%1$s &ndash; %2$s &ndash; %3$s' : '%1$s &ndash; %2$s'),
 				array(
 					__('Symphony'),
-					__('Page templates'),
+					__('Page Prototypes'),
 					$title
 				)
 			));
 			if($existing) {
 				$template_name = $fields['handle'];
-				$this->appendSubheading(__($title ? $title : __('Untitled')), Widget::Anchor(__('Edit Template'), $this->_uri . '/manage/template/' . $template_name, __('Edit Page Template'), 'button'));
+				$this->appendSubheading(__($title ? $title : __('Untitled')), Widget::Anchor(__('Edit Template'), $this->_uri . '/manage/template/' . $template_name, __('Edit Prototype Template'), 'button'));
 			}
 			else {
 				$this->appendSubheading(($title ? $title : __('Untitled')));
@@ -265,9 +267,9 @@
 
 				$fieldset = new XMLElement('fieldset');
 				$fieldset->setAttribute('class', 'settings');
-				$fieldset->appendChild(new XMLElement('legend', __('Page Template Settings')));
+				$fieldset->appendChild(new XMLElement('legend', __('Page Settings')));
 
-				$label = Widget::Label(__('Title'));		
+				$label = Widget::Label(__('Title'));
 				$label->appendChild(Widget::Input(
 					'fields[title]', General::sanitize($fields['title'])
 				));
@@ -320,7 +322,7 @@
 
 				$fieldset = new XMLElement('fieldset');
 				$fieldset->setAttribute('class', 'settings');
-				$fieldset->appendChild(new XMLElement('legend', __('Page Template Resources')));
+				$fieldset->appendChild(new XMLElement('legend', __('Page Resources')));
 
 				$group = new XMLElement('div');
 				$group->setAttribute('class', 'group');
@@ -366,13 +368,13 @@
 			$div = new XMLElement('div');
 			$div->setAttribute('class', 'actions');
 			$div->appendChild(Widget::Input(
-				'action[save]', ($this->_context[0] == 'edit' ? __('Save Changes') : __('Create Page Template')),
+				'action[save]', ($this->_context[0] == 'edit' ? __('Save Changes') : __('Create Page Prototype')),
 				'submit', array('accesskey' => 's')
 			));
 			
 			if($this->_context[0] == 'edit'){
 				$button = new XMLElement('button', __('Delete'));
-				$button->setAttributeArray(array('name' => 'action[delete]', 'class' => 'confirm delete', 'title' => __('Delete this Page Template')));
+				$button->setAttributeArray(array('name' => 'action[delete]', 'class' => 'confirm delete', 'title' => __('Delete this Page Prototype')));
 				$div->appendChild($button);
 			}
 			
@@ -381,12 +383,12 @@
 		}
 		
 		public function __actionEdit() {
-			if($this->_context[0] != 'new' && !$template_id = (integer)$this->_context[1]) {
+			if($this->_context[0] != 'new' && !$prototype_id = (integer)$this->_context[1]) {
 				redirect($this->_uri . '/manage/');
 			}
 				
 			if(@array_key_exists('delete', $_POST['action'])) {
-				$this->__actionDelete($template_id, $this->_uri . '/manage/');
+				$this->__actionDelete($prototype_id, $this->_uri . '/manage/');
 			}
 			
 			if(@array_key_exists('save', $_POST['action'])) {
@@ -396,11 +398,11 @@
 				
 				$current = Symphony::Database()->fetchRow(0, "
 					SELECT
-						t.*
+						p.*
 					FROM
-						`tbl_page_templates` AS t
+						`tbl_page_prototypes` AS p
 					WHERE
-						t.id = '{$template_id}'
+						p.id = '{$prototype_id}'
 					LIMIT 1
 				");
 				
@@ -411,16 +413,16 @@
 				if(trim($fields['type']) != '' && preg_match('/(index|404|403)/i', $fields['type'])) {
 					$types = preg_split('/\s*,\s*/', strtolower($fields['type']), -1, PREG_SPLIT_NO_EMPTY);
 					
-					if(in_array('index', $types) && $this->__typeUsed($template_id, 'index')) {
-						$this->_errors['type'] = __('An index type page template already exists.');
+					if(in_array('index', $types) && $this->__typeUsed(0, 'index')) {
+						$this->_errors['type'] = __('An index type page already exists.');
 					}
 					
-					elseif(in_array('404', $types) && $this->__typeUsed($template_id, '404')) {	
-						$this->_errors['type'] = __('A 404 type page template already exists.');
+					elseif(in_array('404', $types) && $this->__typeUsed(0, '404')) {	
+						$this->_errors['type'] = __('A 404 type page already exists.');
 					}
 					
-					elseif(in_array('403', $types) && $this->__typeUsed($template_id, '403')) {	
-						$this->_errors['type'] = __('A 403 type page template already exists.');
+					elseif(in_array('403', $types) && $this->__typeUsed(0, '403')) {	
+						$this->_errors['type'] = __('A 403 type page already exists.');
 					}
 				}
 				
@@ -428,9 +430,9 @@
 					if(empty($current)) {
 						$fields['sortorder'] = Symphony::Database()->fetchVar('next', 0, "
 							SELECT
-								MAX(t.sortorder) + 1 AS `next`
+								MAX(p.sortorder) + 1 AS `next`
 							FROM
-								`tbl_page_templates` AS t
+								`tbl_page_prototypes` AS p
 							LIMIT 1
 						");
 						
@@ -461,24 +463,24 @@
 					// Check for duplicates:
 					$duplicate = Symphony::Database()->fetchRow(0, "
 						SELECT
-							t.*
+							p.*
 						FROM
-							`tbl_page_templates` AS t
+							`tbl_page_prototypes` AS p
 						WHERE
-							t.id != '{$template_id}'
-							AND t.handle = '" . $fields['handle'] . "'
-							AND t.path " . ($fields['path'] ? " = '" . $fields['path'] . "'" : ' IS NULL') .  " 
+							p.id != '{$prototype_id}'
+							AND p.handle = '" . $fields['handle'] . "'
+							AND p.path " . ($fields['path'] ? " = '" . $fields['path'] . "'" : ' IS NULL') .  " 
 						LIMIT 1
 					");
 					
 					// Create or move files:
 					if(empty($current)) {
-						$file_created = $this->__updatePageTemplateFiles(
+						$file_created = $this->__updatePrototypeTemplateFiles(
 							$fields['path'], $fields['handle']
 						);
 						
 					} else {
-						$file_created = $this->__updatePageTemplateFiles(
+						$file_created = $this->__updatePrototypeTemplateFiles(
 							$fields['path'], $fields['handle'],
 							$current['path'], $current['handle']
 						);
@@ -487,22 +489,22 @@
 					if(!$file_created) {
 						$redirect = null;
 						$this->pageAlert(
-							__('Page template could not be written to disk. Please check permissions on <code>/workspace/pages/templates</code>.'),
+							__('Prototype template could not be written to disk. Please check permissions on <code>/workspace/pages</code>.'),
 							Alert::ERROR
 						);
 					}
 					
 					if($duplicate) {
 						if($autogenerated_handle) {
-							$this->_errors['title'] = __('A page template with that title already exists');
+							$this->_errors['title'] = __('A prototype template with that title already exists');
 							
 						} else {
-							$this->_errors['handle'] = __('A page template with that handle already exists'); 
+							$this->_errors['handle'] = __('A prototype template with that handle already exists'); 
 						}
 						
 					// Insert the new data:
 					} elseif(empty($current)) {
-						if(!Symphony::Database()->insert($fields, 'tbl_page_templates')) {
+						if(!Symphony::Database()->insert($fields, 'tbl_page_prototypes')) {
 							$this->pageAlert(
 								__(
 									'Unknown errors occurred while attempting to save. Please check your <a href="%s">activity log</a>.',
@@ -514,13 +516,13 @@
 							);
 							
 						} else {
-							$template_id = Symphony::Database()->getInsertID();
-							$redirect = $this->_uri . "/manage/edit/{$template_id}/created/";
+							$prototype_id = Symphony::Database()->getInsertID();
+							$redirect = $this->_uri . "/manage/edit/{$prototype_id}/created/";
 						}
 						
 					// Update existing:
 					} else {
-						if(!Symphony::Database()->update($fields, 'tbl_page_templates', "`id` = '$template_id'")) {
+						if(!Symphony::Database()->update($fields, 'tbl_page_prototypes', "`id` = '$prototype_id'")) {
 							$this->pageAlert(
 								__(
 									'Unknown errors occurred while attempting to save. Please check your <a href="%s">activity log</a>.',
@@ -532,8 +534,8 @@
 							);
 							
 						} else {
-							Symphony::Database()->delete('tbl_page_templates_types', " `page_template_id` = '$template_id'");
-							$redirect = $this->_uri . "/manage/edit/{$template_id}/saved/";
+							Symphony::Database()->delete('tbl_page_prototypes_types', " `page_prototype_id` = '$prototype_id'");
+							$redirect = $this->_uri . "/manage/edit/{$prototype_id}/saved/";
 						}
 					}
 					
@@ -541,10 +543,10 @@
 					if(is_array($types) && !empty($types)) {
 						foreach ($types as $type) Symphony::Database()->insert(
 							array(
-								'page_template_id' => $template_id,
+								'page_prototype_id' => $prototype_id,
 								'type' => $type
 							),
-							'tbl_page_templates_types'
+							'tbl_page_prototypes_types'
 						);
 					}
 					
@@ -560,26 +562,26 @@
 			}			
 		}
 		
-		protected function __actionDelete($page_templates, $redirect) {
+		protected function __actionDelete($page_prototypes, $redirect) {
 			$success = true;
 			
-			if(!is_array($page_templates)) $page_templates = array($page_templates);
+			if(!is_array($page_prototypes)) $page_prototypes = array($page_prototypes);
 			
-			foreach ($page_templates as $template_id) {
-				$template = Symphony::Database()->fetchRow(0, "
+			foreach ($page_prototypes as $prototype_id) {
+				$prototype = Symphony::Database()->fetchRow(0, "
 					SELECT
-						t.*
+						p.*
 					FROM
-						`tbl_page_templates` AS t
+						`tbl_page_prototypes` AS p
 					WHERE
-						t.id = '{$template_id}'
+						p.id = '{$prototype_id}'
 					LIMIT 1
 				");
 				
-				if(empty($template)) {
+				if(empty($prototype)) {
 					$success = false;
 					$this->pageAlert(
-						__('Page Template could not be deleted because it does not exist.'),
+						__('Prototype Template could not be deleted because it does not exist.'),
 						Alert::ERROR
 					);
 					
@@ -592,7 +594,7 @@
 					FROM
 						`tbl_pages` AS p
 					WHERE
-						p.page_template_id = '{$template_id}'
+						p.page_prototype_id = '{$prototype_id}'
 				");
 				
 				if (is_array($references) && !empty($references)) {
@@ -616,33 +618,32 @@
 					$page_links = implode(', ', $page_links);
 					
 					$this->pageAlert(
-						__('Template could not be deleted because it is referenced by the following pages.') . $page_links,
+						__('Prototype could not be deleted because it is referenced by the following pages.') . $page_links,
 						Alert::ERROR
 					);
 					
 					break;
 				}
 				
-				if(!$this->__deletePageTemplateFiles($template['path'], $template['handle'])) {
-					$this->_hilights[] = $template['id'];
+				if(!$this->__deletePrototypeTemplateFiles($prototype['path'], $prototype['handle'])) {
+					$this->_hilights[] = $prototype['id'];
 					$success = false;
 					$this->pageAlert(
-						__('One or more page templates could not be deleted. Please check permissions on <code>/workspace/pages</code>.'),
+						__('One or more prototype templates could not be deleted. Please check permissions on <code>/workspace/pages</code>.'),
 						Alert::ERROR
 					);
 					
 					continue;
 				}
 				
-				Symphony::Database()->delete('tbl_page_templates', " `id` = '{$template_id}'");
-				// Symphony::Database()->delete('tbl_page_templates_types', " `page_template_id` = '{$page_id}'");
+				Symphony::Database()->delete('tbl_page_prototypes', " `id` = '{$prototype_id}'");
 				Symphony::Database()->query("
 					UPDATE
-						tbl_page_templates
+						tbl_page_prototypes
 					SET
 						`sortorder` = (`sortorder` + 1)
 					WHERE
-						`sortorder` < '$template_id'
+						`sortorder` < '$prototype_id'
 				");
 			}
 			
@@ -654,18 +655,18 @@
 			$this->Form->setAttribute('action', $this->_uri . '/manage/template/' . $this->_context[1] . '/');
 			
 			$filename = $this->_context[1] . '.xsl';
-			$file_abs = PAGES . '/_page_template_' . $filename;
+			$file_abs = PAGES . '/_page_prototype_' . $filename;
 			
 			$is_child = strrpos($this->_context[1],'_');
-			$pagename = ($is_child != false ? substr($this->_context[1], $is_child + 1) : $this->_context[1]);
+			$prototypename = ($is_child != false ? substr($this->_context[1], $is_child + 1) : $this->_context[1]);
 
-			$pagedata = $this->_Parent->Database->fetchRow(0, "
+			$prototypedata = $this->_Parent->Database->fetchRow(0, "
 					SELECT
-						t.*
+						p.*
 					FROM
-						`tbl_page_templates` AS t
+						`tbl_page_prototypes` AS p
 					WHERE
-						t.handle = '{$pagename}'
+						p.handle = '{$prototypename}'
 					LIMIT 1
 				");
 			
@@ -673,14 +674,14 @@
 			
 			$fields['body'] = @file_get_contents($file_abs);
 			
-			$formHasErrors = (is_array($this->_errors) && !empty($this->_errors));			
+			$formHasErrors = (is_array($this->_errors) && !empty($this->_errors));
 			if($formHasErrors) $this->pageAlert(__('An error occurred while processing this form. <a href="#error">See below for details.</a>'), Alert::ERROR);
 			
 			// Status message:
 			if(isset($this->_context[2])) {
 				$this->pageAlert(
 					__(
-						'Page Template updated at %s. <a href="%s">View all Page Templates</a>',
+						'Prototype Template updated at %s. <a href="%s">View all Page Prototypes</a>',
 						array(
 							DateTimeObj::getTimeAgo(__SYM_TIME_FORMAT__),
 							$this->_uri . '/manage/'
@@ -694,11 +695,11 @@
 				($filename ? '%1$s &ndash; %2$s &ndash; %3$s' : '%1$s &ndash; %2$s'),
 				array(
 					__('Symphony'),
-					__('Page Templates'),
+					__('Page Prototypes'),
 					$filename
 				)
 			));
-			$this->appendSubheading(__($filename ? $filename : __('Untitled')), Widget::Anchor(__('Edit Configuration'), $this->_uri . '/manage/edit/' . $pagedata['id'], __('Edit Page Confguration'), 'button'));
+			$this->appendSubheading(__($filename ? $filename : __('Untitled')), Widget::Anchor(__('Edit Configuration'), $this->_uri . '/manage/edit/' . $pagedata['id'], __('Edit Prototype Confguration'), 'button'));
 			
 			if(!empty($_POST)) $fields = $_POST['fields'];
 			
@@ -761,7 +762,7 @@
 		
 		public function __actionTemplate() {
 			$filename = $this->_context[1] . '.xsl';
-			$file_abs = PAGES . '/_page_template_' . $filename;
+			$file_abs = PAGES . '/_page_prototype_' . $filename;
 			$fields = $_POST['fields'];
 			$this->_errors = array();
 			
@@ -789,22 +790,22 @@
 			
 			// Verify template exists:
 			if($this->_context[0] == 'spawn') {
-				if(!$template_id = $this->_context[1]) redirect($this->_uri . '/manage/');
+				if(!$prototype_id = $this->_context[1]) redirect($this->_uri . '/manage/');
 				
 				$existing = Symphony::Database()->fetchRow(0, "
 					SELECT
-						t.*
+						p.*
 					FROM
-						`tbl_page_templates` AS t
+						`tbl_page_prototypes` AS p
 					WHERE
-						t.id = '{$template_id}'
+						p.id = '{$prototype_id}'
 					LIMIT 1
 				");
 				
 				if(!$existing) {
 					$this->_Parent->customError(
 						E_USER_ERROR, __('Page not found'),
-						__('The page you requested to edit does not exist.'),
+						__('The prototype you requested to edit does not exist.'),
 						false, true, 'error', array(
 							'header'	=> 'HTTP/1.0 404 Not Found'
 						)
@@ -817,9 +818,9 @@
 					SELECT
 						p.type
 					FROM
-						`tbl_page_templates_types` AS p
+						`tbl_page_prototypes_types` AS p
 					WHERE
-						p.page_template_id = '{$template_id}'
+						p.page_prototype_id = '{$prototype_id}'
 					ORDER BY
 						p.type ASC
 				");
@@ -836,7 +837,7 @@
 				($title ? '%1$s &ndash; %2$s &ndash; %3$s &ndash; %4$s' : '%1$s &ndash; %2$s'),
 				array(
 					__('Symphony'),
-					__('Page Templates'),
+					__('Page Prototypes'),
 					__('Spawn'),
 					$title
 				)
@@ -855,7 +856,7 @@
 			$fieldset->setAttribute('class', 'settings');
 			$fieldset->appendChild(new XMLElement('legend', __('Page Settings')));
 
-			$label = Widget::Label(__('Title'));		
+			$label = Widget::Label(__('Title'));
 			$label->appendChild(Widget::Input(
 				'fields[title]', General::sanitize(__('A %1$s page', array($title)))
 			));
@@ -892,8 +893,6 @@
 					p.*
 				FROM
 					`tbl_pages` AS p
-				WHERE
-					p.id != '{$page_id}'
 				ORDER BY
 					p.title ASC
 			");
@@ -931,7 +930,7 @@
 			$label = Widget::Label(__('URL Parameters'));
 			$label->appendChild(Widget::Input(
 				'fields[params]', $fields['params']
-			));				
+			));
 			$column->appendChild($label);
 
 		// Type -----------------------------------------------------------
@@ -1019,25 +1018,25 @@
 		}
 		
 		public function __actionSpawn() {
-			if($this->_context[0] == 'spawn' && !$template_id = (integer)$this->_context[1]) {
+			if($this->_context[0] == 'spawn' && !$prototype_id = (integer)$this->_context[1]) {
 				redirect($this->_uri . '/manage/');
 			}
 			
 			if ($this->_context[0] == 'spawn') {
-				$template = Symphony::Database()->fetchRow(0, "
+				$prototype = Symphony::Database()->fetchRow(0, "
 					SELECT
-						t.*
+						p.*
 					FROM
-						`tbl_page_templates` AS t
+						`tbl_page_prototypes` AS p
 					WHERE
-						t.id = '{$template_id}'
+						p.id = '{$prototype_id}'
 					LIMIT 1
 				");
 
-				if(!$template) {
+				if(!$prototype) {
 					$this->_Parent->customError(
 						E_USER_ERROR, __('Page not found'),
-						__('The page template you requested to spawn from does not exist.'),
+						__('The page prototype you requested to spawn from does not exist.'),
 						false, true, 'error', array(
 							'header'	=> 'HTTP/1.0 404 Not Found'
 						)
@@ -1116,8 +1115,8 @@
 						$fields['path'] = $this->_Parent->resolvePagePath((integer)$fields['parent']);
 					}
 					
-					$fields['page_template_id'] = $template_id;
-					$fields['page_template_referenced'] = 'no';
+					$fields['page_prototype_id'] = $prototype_id;
+					$fields['page_prototype_referenced'] = 'no';
 					
 					// Check for duplicates:
 					$duplicate = Symphony::Database()->fetchRow(0, "
@@ -1134,7 +1133,7 @@
 					// Copy file:
 					$file_created = $this->__updatePageFiles(
 						$fields['path'], $fields['handle'],
-						null, $template['handle']
+						null, $prototype['handle']
 					);
 					
 					if(!$file_created) {
@@ -1193,7 +1192,7 @@
 						Alert::ERROR
 					);
 				}
-			}			
+			}
 		}
 		
 		public function __viewReference() {
@@ -1203,22 +1202,22 @@
 			
 			// Verify template exists:
 			if($this->_context[0] == 'reference') {
-				if(!$template_id = $this->_context[1]) redirect($this->_uri . '/manage/');
+				if(!$prototype_id = $this->_context[1]) redirect($this->_uri . '/manage/');
 				
 				$existing = Symphony::Database()->fetchRow(0, "
 					SELECT
-						t.*
+						p.*
 					FROM
-						`tbl_page_templates` AS t
+						`tbl_page_prototypes` AS p
 					WHERE
-						t.id = '{$template_id}'
+						p.id = '{$prototype_id}'
 					LIMIT 1
 				");
 				
 				if(!$existing) {
 					$this->_Parent->customError(
 						E_USER_ERROR, __('Page not found'),
-						__('The page you requested to edit does not exist.'),
+						__('The page prototype you requested to edit does not exist.'),
 						false, true, 'error', array(
 							'header'	=> 'HTTP/1.0 404 Not Found'
 						)
@@ -1231,9 +1230,9 @@
 					SELECT
 						p.type
 					FROM
-						`tbl_page_templates_types` AS p
+						`tbl_page_prototypes_types` AS p
 					WHERE
-						p.page_template_id = '{$template_id}'
+						p.page_prototype_id = '{$prototype_id}'
 					ORDER BY
 						p.type ASC
 				");
@@ -1250,7 +1249,7 @@
 				($title ? '%1$s &ndash; %2$s &ndash; %3$s &ndash; %4$s' : '%1$s &ndash; %2$s'),
 				array(
 					__('Symphony'),
-					__('Page Templates'),
+					__('Page Prototypes'),
 					__('Reference'),
 					$title
 				)
@@ -1269,7 +1268,7 @@
 			$fieldset->setAttribute('class', 'settings');
 			$fieldset->appendChild(new XMLElement('legend', __('Page Settings')));
 
-			$label = Widget::Label(__('Title'));		
+			$label = Widget::Label(__('Title'));
 			$label->appendChild(Widget::Input(
 				'fields[title]', General::sanitize(__('A %1$s page', array($title)))
 			));
@@ -1309,8 +1308,6 @@
 					p.*
 				FROM
 					`tbl_pages` AS p
-				WHERE
-					p.id != '{$page_id}'
 				ORDER BY
 					p.title ASC
 			");
@@ -1353,7 +1350,7 @@
 			$manager = new EventManager($this->_Parent);
 			$events = $manager->listAll();
 			$options = array();
-			if(is_array($events) && !empty($events)) {		
+			if(is_array($events) && !empty($events)) {
 				foreach ($events as $name => $about) $options[] = array(
 					$name, @in_array($name, $fields['events']), $about['name']
 				);
@@ -1390,25 +1387,25 @@
 		}
 		
 		public function __actionReference() {
-			if($this->_context[0] == 'reference' && !$template_id = (integer)$this->_context[1]) {
+			if($this->_context[0] == 'reference' && !$prototype_id = (integer)$this->_context[1]) {
 				redirect($this->_uri . '/manage/');
 			}
 			
 			if ($this->_context[0] == 'reference') {
-				$template = Symphony::Database()->fetchRow(0, "
+				$prototype = Symphony::Database()->fetchRow(0, "
 					SELECT
-						t.*
+						p.*
 					FROM
-						`tbl_page_templates` AS t
+						`tbl_page_prototypes` AS p
 					WHERE
-						t.id = '{$template_id}'
+						p.id = '{$prototype_id}'
 					LIMIT 1
 				");
 
-				if(!$template) {
+				if(!$prototype) {
 					$this->_Parent->customError(
 						E_USER_ERROR, __('Page not found'),
-						__('The page template you requested to spawn from does not exist.'),
+						__('The page prototype you requested to spawn from does not exist.'),
 						false, true, 'error', array(
 							'header'	=> 'HTTP/1.0 404 Not Found'
 						)
@@ -1487,8 +1484,8 @@
 						$fields['path'] = $this->_Parent->resolvePagePath((integer)$fields['parent']);
 					}
 					
-					$fields['page_template_id'] = $template_id;
-					$fields['page_template_referenced'] = 'yes';
+					$fields['page_prototype_id'] = $prototype_id;
+					$fields['page_prototype_referenced'] = 'yes';
 					
 					// Check for duplicates:
 					$duplicate = Symphony::Database()->fetchRow(0, "
@@ -1505,7 +1502,7 @@
 					// Copy file:
 					$file_created = $this->__updatePageFiles(
 						$fields['path'], $fields['handle'],
-						null, $template['handle']
+						null, $prototype['handle']
 					);
 					
 					if(!$file_created) {
@@ -1569,7 +1566,7 @@
 		
 		protected function __updatePageFiles($new_path, $new_handle, $old_path = null, $old_handle = null) {
 			$new = PAGES . '/' . $this->__createHandle($new_path, $new_handle) . '.xsl';
-			$old = PAGES . '/_page_template_' . $this->__createHandle($old_path, $old_handle) . '.xsl';
+			$old = PAGES . '/_page_prototype_' . $this->__createHandle($old_path, $old_handle) . '.xsl';
 			$data = null;
 			
 			// Nothing to do:
@@ -1587,9 +1584,9 @@
 			return General::writeFile($new, $data, Symphony::Configuration()->get('write_mode', 'file'));
 		}
 		
-		protected function __updatePageTemplateFiles($new_path, $new_handle, $old_path = null, $old_handle = null) {
-			$new = PAGES . '/_page_template_' . $this->__createHandle($new_path, $new_handle) . '.xsl';
-			$old = PAGES . '/_page_template_' . $this->__createHandle($old_path, $old_handle) . '.xsl';
+		protected function __updatePrototypeTemplateFiles($new_path, $new_handle, $old_path = null, $old_handle = null) {
+			$new = PAGES . '/_page_prototype_' . $this->__createHandle($new_path, $new_handle) . '.xsl';
+			$old = PAGES . '/_page_prototype_' . $this->__createHandle($old_path, $old_handle) . '.xsl';
 			$data = null;
 			
 			// Nothing to do:
@@ -1607,8 +1604,8 @@
 			return General::writeFile($new, $data, Symphony::Configuration()->get('write_mode', 'file'));
 		}
 		
-		protected function __deletePageTemplateFiles($path, $handle) {
-			$file = PAGES . '/_page_template_' . trim(str_replace('/', '_', $path . '_' . $handle), '_') . '.xsl';
+		protected function __deletePrototypeTemplateFiles($path, $handle) {
+			$file = PAGES . '/_page_prototype_' . trim(str_replace('/', '_', $path . '_' . $handle), '_') . '.xsl';
 			
 			// Nothing to do:
 			if(!file_exists($file)) return true;
@@ -1619,38 +1616,38 @@
 			return false;
 		}
 		
-		public function resolvePageTemplateTitle($page_id) {
-			$path = $this->resolvePageTemplate($page_id, 'title');
+		public function resolvePagePrototypeTitle($prototype_id) {
+			$path = $this->resolvePagePrototype($prototype_id, 'title');
 			
 			return @implode(': ', $path);
 		}
 		
-		public function resolvePageTemplate($page_id, $column) {
-			$page = Symphony::$Database->fetchRow(0, "
+		public function resolvePagePrototype($prototype_id, $column) {
+			$prototype = Symphony::$Database->fetchRow(0, "
 				SELECT
 					p.{$column},
 					p.parent
 				FROM 
-					`tbl_page_templates` AS p
+					`tbl_page_prototypes` AS p
 				WHERE
-					p.id = '{$page_id}'
-					OR p.handle = '{$page_id}'
+					p.id = '{$prototype_id}'
+					OR p.handle = '{$prototype_id}'
 				LIMIT 1
 			");
 			
 			$path = array(
-				$page[$column]
+				$prototype[$column]
 			);
 			
-			if ($page['parent'] != null) {
-				$next_parent = $page['parent'];
+			if ($prototype['parent'] != null) {
+				$next_parent = $prototype['parent'];
 				
 				while (
 					$parent = Symphony::$Database->fetchRow(0, "
 						SELECT
 							p.*
 						FROM
-							`tbl_page_templates` AS p
+							`tbl_page_prototypes` AS p
 						WHERE
 							p.id = '{$next_parent}'
 					")

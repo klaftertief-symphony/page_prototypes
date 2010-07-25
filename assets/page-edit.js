@@ -1,8 +1,8 @@
 jQuery(document).ready(function($) {
-	var $referenced = $('#page_templates-page_template_referenced'),
-		$templates = $('#page_templates-page_template_id'),
+	var $referenced = $('#page_prototypes-page_prototype_referenced'),
+		$prototypes = $('#page_prototypes-page_prototype_id'),
 		referenced = $referenced.is(':checked'),
-		template_id = $templates.val(),
+		prototype_id = $prototypes.val(),
 		$params = $('input[name=fields\\[params\\]]'),
 		$type = $('input[name=fields\\[type\\]]'),
 		$events = $('select[name=fields\\[events\\]\\[\\]]'),
@@ -26,10 +26,10 @@ jQuery(document).ready(function($) {
 		}
 	});
 	
-	$templates.change(function() {
-		template_id = $(this).val();
-		if (template_id > 0) {
-			$.getJSON(Symphony.WEBSITE + '/symphony/extension/page_templates/ajaxpagetemplates/' + template_id + '/', function(json, textStatus) {
+	$prototypes.change(function() {
+		prototype_id = $(this).val();
+		if (prototype_id > 0) {
+			$.getJSON(Symphony.WEBSITE + '/symphony/extension/page_prototypes/ajaxpageprototypes/' + prototype_id + '/', function(json, textStatus) {
 				$referenced.removeAttr('disabled');
 				$params.val(json.params);
 				$type.val(json.type);

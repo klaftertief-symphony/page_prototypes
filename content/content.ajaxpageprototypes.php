@@ -1,6 +1,6 @@
 <?php
 	
-	class contentExtensionPage_templatesAjaxpagetemplates extends AjaxPage {
+	class contentExtensionPage_prototypesAjaxpageprototypes extends AjaxPage {
 		
 		var $_context;
 		
@@ -16,25 +16,25 @@
 		}
 		
 		public function view(){
-			if(!$template_id = (integer)$this->_context[0]) {
+			if(!$prototype_id = (integer)$this->_context[0]) {
 				$this->_status = self::STATUS_BAD;
-				$this->_Result = json_encode(array('status' => __('No or wrong parameter.')));
+				$this->_Result = json_encode(array('status' => __('Missing or wrong parameter.')));
 				return;
 			}
 			
 			$existing = Symphony::Database()->fetchRow(0, "
 				SELECT
-					t.*
+					p.*
 				FROM
-					`tbl_page_templates` AS t
+					`tbl_page_prototypes` AS p
 				WHERE
-					t.id = '{$template_id}'
+					p.id = '{$prototype_id}'
 				LIMIT 1
 			");
 			
 			if(!$existing) {
 				$this->_status = self::STATUS_ERROR;
-				$this->_Result = json_encode(array('status' => __('The page template you requested does not exist.')));
+				$this->_Result = json_encode(array('status' => __('The page prototype you requested does not exist.')));
 				return;
 			}
 			
@@ -44,9 +44,9 @@
 				SELECT
 					p.type
 				FROM
-					`tbl_page_templates_types` AS p
+					`tbl_page_prototypes_types` AS p
 				WHERE
-					p.page_template_id = '{$template_id}'
+					p.page_prototype_id = '{$prototype_id}'
 				ORDER BY
 					p.type ASC
 			");
