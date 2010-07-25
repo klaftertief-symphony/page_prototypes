@@ -594,7 +594,7 @@
 					FROM
 						`tbl_pages` AS p
 					WHERE
-						p.page_prototype_id = '{$prototype_id}'
+						p.page_prototype_id = '{$prototype_id}' AND p.page_prototype_referenced = 'yes'
 				");
 				
 				if (is_array($references) && !empty($references)) {
