@@ -161,7 +161,7 @@
 					SELECT
 						p.*
 					FROM
-						`tbl_page_prototype` AS p
+						`tbl_page_prototypes` AS p
 					WHERE
 						p.id = '{$prototype_id}'
 					LIMIT 1
