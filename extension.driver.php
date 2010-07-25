@@ -59,7 +59,7 @@
 					`page_prototype_id` int(11) unsigned NOT NULL,
 					`type` varchar(50) NOT NULL,
 					PRIMARY KEY (`id`),
-					KEY `page_prototype_id` (`page_prototype_id`)
+					KEY `page_prototype_id` (`page_prototype_id`),
 					KEY `type` (`type`)
 				) ENGINE=MyISAM"
 			);
