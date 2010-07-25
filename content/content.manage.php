@@ -699,7 +699,7 @@
 					$filename
 				)
 			));
-			$this->appendSubheading(__($filename ? $filename : __('Untitled')), Widget::Anchor(__('Edit Configuration'), $this->_uri . '/manage/edit/' . $pagedata['id'], __('Edit Prototype Confguration'), 'button'));
+			$this->appendSubheading(__($filename ? $filename : __('Untitled')), Widget::Anchor(__('Edit Configuration'), $this->_uri . '/manage/edit/' . $prototypedata['id'] . '/', __('Edit Prototype Confguration'), 'button'));
 			
 			if(!empty($_POST)) $fields = $_POST['fields'];
 			
