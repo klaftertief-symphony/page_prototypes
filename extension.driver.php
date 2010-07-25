@@ -54,7 +54,7 @@
 			);
 
 			$prototypes_types = Symphony::Database()->query(
-				"CREATE TABLE `tbl_page_prototypes_types` (
+				"CREATE TABLE IF NOT EXISTS `tbl_page_prototypes_types` (
 					`id` int(11) unsigned NOT NULL auto_increment,
 					`page_prototype_id` int(11) unsigned NOT NULL,
 					`type` varchar(50) NOT NULL,
