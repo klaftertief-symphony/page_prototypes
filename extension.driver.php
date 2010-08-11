@@ -164,7 +164,7 @@
 
 				$dom = new DOMDocument;
 				$dom->preserveWhiteSpace = true;
-				$dom->loadHTML($context['output']);
+				@$dom->loadHTML($context['output']);
 				$form = $dom->getElementsByTagName('form')->item(0);
 
 				if ($action == 'edit') {
