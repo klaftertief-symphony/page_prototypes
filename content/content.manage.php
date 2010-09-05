@@ -838,7 +838,7 @@
 				array(
 					__('Symphony'),
 					__('Page Prototypes'),
-					__('Spawn'),
+					__('Copy'),
 					$title
 				)
 			));
@@ -1036,7 +1036,7 @@
 				if(!$prototype) {
 					$this->_Parent->customError(
 						E_USER_ERROR, __('Page not found'),
-						__('The page prototype you requested to spawn from does not exist.'),
+						__('The page prototype you requested to copy does not exist.'),
 						false, true, 'error', array(
 							'header'	=> 'HTTP/1.0 404 Not Found'
 						)
@@ -1405,7 +1405,7 @@
 				if(!$prototype) {
 					$this->_Parent->customError(
 						E_USER_ERROR, __('Page not found'),
-						__('The page prototype you requested to spawn from does not exist.'),
+						__('The page prototype you requested to copy does not exist.'),
 						false, true, 'error', array(
 							'header'	=> 'HTTP/1.0 404 Not Found'
 						)
