@@ -103,7 +103,7 @@
 			$page = $context['parent']->Page;
 
 			if (($page instanceof ContentBlueprintsPages) && !($page instanceof contentExtensionPage_prototypesManage) && ($page->_context[0] == 'edit' || $page->_context[0] == 'template')) {
-				$page->addScriptToHead(URL . '/extensions/page_prototypes/assets/page-edit.js', 565656);
+				$page->addScriptToHead(URL . '/extensions/page_prototypes/assets/page_prototypes.blueprintspages.js', 565656);
 			}
 		}
 
