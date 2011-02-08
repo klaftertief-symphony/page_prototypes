@@ -3,26 +3,27 @@ jQuery(document).ready(function($) {
 		$prototypes = $('#page_prototypes-page_prototype_id'),
 		referenced = $referenced.is(':checked'),
 		prototype_id = $prototypes.val(),
-		$params = $('input[name=fields\\[params\\]]'),
-		$type = $('input[name=fields\\[type\\]]'),
-		$events = $('select[name=fields\\[events\\]\\[\\]]'),
-		$data_sources = $('select[name=fields\\[data_sources\\]\\[\\]]'),
+		$params = $('input[name="fields\\[params\\]"]'),
+		$type = $('input[name="fields\\[type\\]"]'),
+		$events = $('select[name="fields\\[events\\]\\[\\]"]'),
+		$data_sources = $('select[name="fields\\[data_sources\\]\\[\\]"]'),
 		$fixables = $params.add($type).add($events).add($data_sources),
-		$tags = $('.tags > li'),
+		$tags = $('.tags'),
 		$submit = $('input[type="submit"]');
 	
 	if (referenced) {
 		$fixables.attr('disabled', 'disabled');
-		$tags.addClass(' ');
+		$tags.undelegate('li', 'click.tags');
 	};
 	
 	$referenced.change(function() {
 		if ($(this).is(':checked')) {
 			$fixables.attr('disabled', 'disabled');
-			$tags.addClass(' ');
+			$tags.undelegate('li', 'click.tags');
+			$prototypes.trigger('change');
 		} else {
 			$fixables.removeAttr('disabled');
-			$tags.removeAttr('class');
+			$tags.symphonyTags();
 		}
 	});
 	
