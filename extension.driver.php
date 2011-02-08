@@ -28,9 +28,9 @@
 					'callback' => 'initaliseAdminPageHead'
 				),
 				array(
-					'page' => '/administration/',
-					'delegate' => 'AdminPagePostGenerate',
-					'callback' => 'adminPagePostGenerate'
+					'page' => '/blueprints/pages/',
+					'delegate' => 'AppendPageContent',
+					'callback' => 'appendPageContent'
 				)
 			);
 		}
@@ -157,92 +157,67 @@
 			}
 		}
 
-		public function adminPagePostGenerate($context) {
+		public function appendPageContent($context) {
 			$page = $context['parent']->Page;
-			if (($page instanceof ContentBlueprintsPages) && !($page instanceof contentExtensionPage_prototypesManage) && ($page->_context[0] == 'edit' || $page->_context[0] == 'template')) {
-				$action = $page->_context[0];
+			if ($page->_context[0] == 'new' || $page->_context[0] == 'edit' || $page->_context[0] == 'template') {
+				$form = $context['form'];
 
-				$dom = new DOMDocument;
-				$dom->preserveWhiteSpace = true;
-				@$dom->loadHTML($context['output']);
-				$form = $dom->getElementsByTagName('form')->item(0);
+				$page_id = $page->_context[1];
+				$prototypes = Symphony::Database()->fetch("
+					SELECT
+						p.id,p.title
+					FROM
+						`tbl_page_prototypes` AS p
+					ORDER BY
+						p.sortorder ASC
+				");
+				$selected = Symphony::Database()->fetch("
+					SELECT
+						p.page_prototype_id, p.page_prototype_referenced
+					FROM
+						`tbl_pages` AS p
+					WHERE
+						p.id = '{$page_id}'
+					LIMIT 1
+				");
+				$selected = $selected[0];
 
-				if ($action == 'edit') {
-					$page_id = $page->_context[1];
-					$prototypes = Symphony::Database()->fetch("
-						SELECT
-							p.id,p.title
-						FROM
-							`tbl_page_prototypes` AS p
-						ORDER BY
-							p.sortorder ASC
-					");
-					$selected = Symphony::Database()->fetch("
-						SELECT
-							p.page_prototype_id, p.page_prototype_referenced
-						FROM
-							`tbl_pages` AS p
-						WHERE
-							p.id = '{$page_id}'
-						LIMIT 1
-					");
-					$selected = $selected[0];
+				$fieldset = new XMLElement('fieldset');
+				$fieldset->setAttribute('class', 'settings');
+				$fieldset->appendChild(new XMLElement('legend', __('Prototype Settings')));
 
-					$fieldset = $form->getElementsByTagName('fieldset')->item(0);
+				$group = new XMLElement('div');
+				$group->setAttribute('class', 'group');
 
-					$settings = $dom->createElement('fieldset');
-					$settings->setAttribute('class', 'settings');
-					$legend = $dom->createElement('legend', __('Prototype Settings'));
-					$settings->appendChild($legend);
-
-					$group = $dom->createElement('div');
-					$group->setAttribute('class', 'group');
-
-					$label = $dom->createElement('label', __('Page Prototype'));
-					$select = $dom->createElement('select');
-					$select->setAttribute('id', 'page_prototypes-page_prototype_id');
-					$select->setAttribute('name', 'fields[page_prototype_id]');
-					$option = $dom->createElement('option', __('None'));
-					$select->appendChild($option);
-					$option->setAttribute('value', '0');
-					foreach ($prototypes as $prototype) {
-						$option = $dom->createElement('option', $prototype['title']);
-						$option->setAttribute('value', $prototype['id']);
-						if ($selected['page_prototype_id'] == $prototype['id']) {
-							$option->setAttribute('selected', 'selected');
-						}
-						$select->appendChild($option);
-					}
-					$label->appendChild($select);
-					$group->appendChild($label);
-
-					$label = $dom->createElement('label');
-					$hidden = $dom->createElement('input');
-					$hidden->setAttribute('type', 'hidden');
-					$hidden->setAttribute('value', 'no');
-					$hidden->setAttribute('name', 'fields[page_prototype_referenced]');
-					$group->appendChild($hidden);
-					$checkbox = $dom->createElement('input');
-					$checkbox->setAttribute('id', 'page_prototypes-page_prototype_referenced');
-					$checkbox->setAttribute('type', 'checkbox');
-					$checkbox->setAttribute('value', 'yes');
-					$checkbox->setAttribute('name', 'fields[page_prototype_referenced]');
-					if ($selected['page_prototype_id'] && $selected['page_prototype_referenced'] == 'yes') {
-						$checkbox->setAttribute('checked', 'checked');
-					}
-
-					$text = $dom->createTextNode(__('Reference Prototype'));
-					$label->appendChild($checkbox);
-					$label->appendChild($text);
-					$group->appendChild($label);
-
-					$settings->appendChild($group);
-
-					$fieldset->parentNode->insertBefore($settings, $fieldset);
+				$column = new XMLElement('div');
+				$label = Widget::Label(__('Page Prototype'));
+				$options = array(
+					array('', false, __('None'))
+				);
+				foreach ($prototypes as $prototype) {
+					$options[] = array(
+						$prototype['id'], $selected['page_prototype_id'] == $prototype['id'], $prototype['title']
+					);
 				}
+				$label->appendChild(Widget::Select(
+					'fields[page_prototype_id]', $options, array('id' => 'page_prototypes-page_prototype_id')
+				));
+				$column->appendChild($label);
+				$group->appendChild($column);
 
-				$context['output'] = $dom->saveHTML();
+				$column = new XMLElement('div');
+				$input = Widget::Input('fields[page_prototype_referenced]', 'no', 'hidden');
+				$column->appendChild($input);
+				$label = Widget::Label();
+				$input = Widget::Input('fields[page_prototype_referenced]', 'yes', 'checkbox', ($selected['page_prototype_id'] && $selected['page_prototype_referenced'] == 'yes') ? array('checked' => 'checked') : NULL);
+				$label->setValue(__('%s Reference Prototype', array($input->generate(false))));
+				$column->appendChild($label);
+				$group->appendChild($column);
+
+				$fieldset->appendChild($group);
+				$form->prependChild($fieldset);
 			}
+
 		}
 
 	}
