@@ -562,7 +562,7 @@
 			}			
 		}
 		
-		protected function __actionDelete($page_prototypes, $redirect) {
+		public function __actionDelete($page_prototypes, $redirect) {
 			$success = true;
 			
 			if(!is_array($page_prototypes)) $page_prototypes = array($page_prototypes);
