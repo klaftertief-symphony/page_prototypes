@@ -210,6 +210,7 @@
 				$column->appendChild($input);
 				$label = Widget::Label();
 				$input = Widget::Input('fields[page_prototype_referenced]', 'yes', 'checkbox', ($selected['page_prototype_id'] && $selected['page_prototype_referenced'] == 'yes') ? array('checked' => 'checked') : NULL);
+				$input->setAttribute('id', 'page_prototypes-page_prototype_referenced');
 				$label->setValue(__('%s Reference Prototype', array($input->generate(false))));
 				$column->appendChild($label);
 				$group->appendChild($column);
