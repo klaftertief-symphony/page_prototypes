@@ -16,6 +16,12 @@ jQuery(document).ready(function($) {
 		$tags.undelegate('li', 'click.tags');
 	};
 	
+	if (!prototype_id) {
+		$referenced.removeAttr('checked').attr('disabled', 'disabled');
+	} else {
+		updateFields(prototype_id);
+	};
+	
 	$referenced.change(function() {
 		if ($(this).is(':checked')) {
 			$fixables.attr('disabled', 'disabled');
@@ -28,7 +34,14 @@ jQuery(document).ready(function($) {
 	});
 	
 	$prototypes.change(function() {
-		prototype_id = $(this).val();
+		updateFields($(this).val());
+	});
+	
+	$submit.mousedown(function() {
+		$fixables.removeAttr('disabled');
+	});
+	
+	function updateFields(prototype_id) {
 		if (prototype_id > 0) {
 			$.getJSON(Symphony.WEBSITE + '/symphony/extension/page_prototypes/ajaxpageprototypes/' + prototype_id + '/', function(json, textStatus) {
 				$referenced.removeAttr('disabled');
@@ -55,9 +68,5 @@ jQuery(document).ready(function($) {
 			$referenced.removeAttr('checked').attr('disabled', 'disabled');
 			$fixables.removeAttr('disabled');
 		};
-	});
-	
-	$submit.mousedown(function() {
-		$fixables.removeAttr('disabled');
-	});
+	}
 });

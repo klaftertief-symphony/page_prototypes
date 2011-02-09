@@ -102,7 +102,7 @@
 		public function initaliseAdminPageHead($context) {
 			$page = $context['parent']->Page;
 
-			if (($page instanceof ContentBlueprintsPages) && !($page instanceof contentExtensionPage_prototypesManage) && ($page->_context[0] == 'edit' || $page->_context[0] == 'template')) {
+			if (($page instanceof ContentBlueprintsPages) && !($page instanceof contentExtensionPage_prototypesManage) && ($page->_context[0] == 'edit' || $page->_context[0] == 'new' || $page->_context[0] == 'template')) {
 				$page->addScriptToHead(URL . '/extensions/page_prototypes/assets/page_prototypes.blueprintspages.js', 565656);
 			}
 		}
