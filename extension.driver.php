@@ -4,8 +4,8 @@
 		public function about() {
 			return array(
 				'name'			=> 'Page Prototypes',
-				'version'		=> '0.5',
-				'release-date'	=> '2010-07-25',
+				'version'		=> '0.6',
+				'release-date'	=> '2011-02-09',
 				'author'		=> array(
 					'name'			=> 'Jonas Coch',
 					'website'		=> 'http://klaftertief.de/',

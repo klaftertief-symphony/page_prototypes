@@ -1,9 +1,9 @@
 # Page Prototypes extension
 
-- Version: 0.5
+- Version: 0.6
 - Author: Jonas Coch
-- Build Date: 2010-07-25
-- Requirements: Symphony 2.1
+- Build Date: 2011-02-09
+- Requirements: Symphony 2.2
 
 A Symphony extension enabling the creation of pages from predefined prototypes.
 
