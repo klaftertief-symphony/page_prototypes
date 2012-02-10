@@ -1,11 +1,11 @@
 # Page Prototypes extension
 
-- Version: 0.6
+- Version: 0.6.1
 - Author: Jonas Coch
-- Build Date: 2011-02-09
+- Build Date: 2012-02-10
 - Requirements: Symphony 2.2
 
-A Symphony extension enabling the creation of pages from predefined prototypes.
+Enables the creation/management of page prototypes from which Symphony Pages can be spawned.
 
 This extension is heavily inspired by [czheng](http://symphony-cms.com/get-involved/member/czheng/)'s [Page Templates](http://symphony-cms.com/download/extensions/view/22943/) extension and it is meant to be its successor.
 

@@ -4,14 +4,14 @@
 		public function about() {
 			return array(
 				'name'			=> 'Page Prototypes',
-				'version'		=> '0.6',
-				'release-date'	=> '2011-02-09',
+				'version'		=> '0.6.1',
+				'release-date'	=> '2012-02-10',
 				'author'		=> array(
 					'name'			=> 'Jonas Coch',
 					'website'		=> 'http://klaftertief.de/',
 					'email'			=> 'jonas@klaftertief.de'
 				),
-				'description'	=> 'Create pages from predefined prototypes.'
+				'description'	=> 'Enables the creation/management of page prototypes from which Symphony Pages can be spawned.'
 			);
 		}
 
