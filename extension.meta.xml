@@ -1,16 +1,18 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <extension id="page_prototypes" status="released" xmlns="http://symphony-cms.com/schemas/extension/1.0">
 	<name>Page Prototypes</name>
-	<description>Manage Page Prototypes</description>
+	<description>Enables the creation/management of page prototypes from which Symphony Pages can be spawned.</description>
 	<repo type="github">https://github.com/klaftertief/page_prototypes</repo>
 	<url type="discuss">http://symphony-cms.com/discuss/thread/48137/</url>
+	<url type="issues">https://github.com/klaftertief/page_prototypes/issues</url>
 	<types>
 		<type>Workflow</type>
 	</types>
 	<authors>
 		<author>
-			<name github="klaftertief" symphony="klaftertief">Jonas Coch</name>
+			<name github="klaftertief" symphony="klaftertief" twitter="klaftertief">Jonas Coch</name>
 			<website>http://klaftertief.de</website>
+			<email>jonas@klaftertief.de</email>
 		</author>
 	</authors>
 	<media>
