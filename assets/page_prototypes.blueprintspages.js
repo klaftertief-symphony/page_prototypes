@@ -47,7 +47,7 @@ jQuery(document).ready(function($) {
 				$referenced.removeAttr('disabled');
 				$params.val(json.params);
 				$type.val(json.type);
-				$('option', $events[0]).each(function(index) {
+				$events.find('option').each(function(index) {
 					var $this = $(this);
 					if ($.inArray($this.val(), json.events) != -1) {
 						$this.attr('selected', 'selected');
@@ -55,7 +55,7 @@ jQuery(document).ready(function($) {
 						$this.removeAttr('selected');
 					};
 				});
-				$('option', $data_sources[0]).each(function(index) {
+				$data_sources.find('option').each(function(index) {
 					var $this = $(this);
 					if ($.inArray($this.val(), json.data_sources) != -1) {
 						$this.attr('selected', 'selected');
