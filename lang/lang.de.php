@@ -114,4 +114,7 @@
 		'Page Prototype updated at %1$s. <a href="%2$s" accesskey="c">Create another?</a> <a href="%3$s" accesskey="a">View all Page Prototypes</a>' => 
 		'Musterseite aktualisiert um %1$s. <a href="%2$s" accesskey="c">Zeige alle Musterseiten</a> <a href="%3$s" accesskey="a">Zeige alle Musterseiten</a>',
 
+		'The following pages referencing this prototype could not be updated.' => 
+		'Die folgenden Seiten, die diesen Prototypen referenzieren, konnten nicht aktualisiert werden.'
+
 	);

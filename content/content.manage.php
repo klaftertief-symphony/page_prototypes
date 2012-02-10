@@ -528,6 +528,49 @@
 							Symphony::Database()->delete('tbl_page_prototypes_types', " `page_prototype_id` = '$prototype_id'");
 							$redirect = $this->_uri . "/manage/edit/{$prototype_id}/saved/";
 						}
+
+						// Update referenced pages:
+						// this is to show the changes also in the normal pages editor and to have
+						// the changes saved with the page when the reference gets deleted
+						$references = Symphony::Database()->fetchCol('id', "
+							SELECT
+								p.id
+							FROM
+								`tbl_pages` AS p
+							WHERE
+								p.page_prototype_id = '{$prototype_id}' AND p.page_prototype_referenced = 'yes'
+						");
+						if (is_array($references) && !empty($references)) {
+							// we don't want to override page specific data
+							unset($fields['title']);
+							unset($fields['handle']);
+							unset($fields['parent']);
+							unset($fields['path']);
+
+							$page_links = array();
+
+							foreach ($references as $page_id) {
+								if(!Symphony::Database()->update($fields, 'tbl_pages', "`id` = '$page_id'")) {
+									$title = Symphony::Database()->fetchVar('title', 0, "
+										SELECT
+											p.title
+										FROM
+											`tbl_pages` AS p
+										WHERE
+											p.id = '{$page_id}'
+										LIMIT 1
+									");
+									$page_links[] = '<a href="' . SYMPHONY_URL . '/blueprints/pages/edit/' . $page_id . '/">' . $title . '</a>';
+								}
+							}
+							if (!empty($page_links)) {
+								$page_links = implode(', ', $page_links);
+								$this->pageAlert(
+									__('The following pages referencing this prototype could not be updated.') . $page_links,
+									Alert::ERROR
+								);
+							}
+						}
 					}
 
 					// Assign page types:
