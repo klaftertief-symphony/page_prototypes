@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <extension id="page_prototypes" status="released" xmlns="http://symphony-cms.com/schemas/extension/1.0">
 	<name>Page Prototypes</name>
-	<description>Enables the creation/management of page prototypes from which Symphony Pages can be spawned.</description>
+	<description>Allows pages to act as prototypes for other pages.</description>
 	<repo type="github">https://github.com/klaftertief/page_prototypes</repo>
 	<url type="discuss">http://symphony-cms.com/discuss/thread/48137/</url>
 	<url type="issues">https://github.com/klaftertief/page_prototypes/issues</url>
@@ -15,10 +15,10 @@
 			<email>jonas@klaftertief.de</email>
 		</author>
 	</authors>
-	<media>
-		<item type="image" url="http://symphonyextensions.com/klaftertief/page_prototypes/media/page_prototypes.png">Manage Page Prototypes</item>
-	</media>
 	<releases>
+		<release version="1.0beta" date="2012-05-14" min="2.3">
+			* Complete rewrite, prototypes are now normal pages with type `prototype`
+		</release>
 		<release version="0.6.1" date="2012-02-10" min="2.2">
 			* Added `extension.meta.xml` file
 			* Update referenced pages when saving a prototype
