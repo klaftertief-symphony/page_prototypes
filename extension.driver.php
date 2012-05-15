@@ -231,12 +231,10 @@
 			}
 		}
 
-		// This delegate does not exist yet.
 		public function pagePostDelete($context) {
-			$page_id = $context['page_id'];
-
-			if (is_array($page_id) && !empty($page_id)) {
-				$page_id = array_map(array('MySQL', 'cleanValue'), $page_id);
+			$page_ids = $context['page_ids'];
+			if (is_array($page_ids) && !empty($page_ids)) {
+				$page_ids = array_map(array('MySQL', 'cleanValue'), $page_ids);
 				$page_ids = implode("', '", $page_ids);
 				Symphony::Database()->delete('tbl_pages_prototypes', sprintf("
 						`page_id` IN ('%s') OR `prototype_id` IN ('%s')
